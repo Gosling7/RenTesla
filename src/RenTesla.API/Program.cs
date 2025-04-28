@@ -1,3 +1,10 @@
+using Microsoft.EntityFrameworkCore;
+using RenTesla.API.Data;
+using RenTesla.API.Interfaces;
+using RenTesla.API.Services;
+using Scalar.AspNetCore;
+using System.Xml.Linq;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,12 +13,40 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddDbContext<RenTeslaDbContext>(optionsBuilder =>
+{
+    optionsBuilder.UseSqlServer(
+        $"Data Source=localhost,1433;" +
+        $"Initial Catalog=RenTesla;" +
+        "User ID=sa;" +
+        $"Password=Password1!;" +
+        "Encrypt=False;" +
+        "Trust Server Certificate=True");
+});
+
+builder.Services
+    .AddScoped<ICarService, CarService>()
+    .AddScoped<IDatabaseSeeder, DatabaseSeeder>();
+
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<RenTeslaDbContext>();
+    await dbContext.Database.MigrateAsync();
+    if (!dbContext.CarModels.Any())
+    {
+        var databaseSeeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+        await databaseSeeder.Seed();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();

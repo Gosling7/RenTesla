@@ -1,0 +1,16 @@
+version: '3.4'
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-CU17-ubuntu-22.04
+    container_name: mssql  
+    ports:
+      - 1433:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Password1!
+    volumes:
+      - rentesla-mssql-data:/var/opt/mssql    
+
+volumes:
+  rentesla-mssql-data:
