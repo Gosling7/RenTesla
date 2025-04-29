@@ -3,7 +3,6 @@ using RenTesla.API.Data;
 using RenTesla.API.Interfaces;
 using RenTesla.API.Services;
 using Scalar.AspNetCore;
-using System.Xml.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +27,15 @@ builder.Services
     .AddScoped<ICarService, CarService>()
     .AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 
+const string CorsOrigin = "MyCorsOrigin";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: CorsOrigin,
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:3000");
+        });
+});
 
 var app = builder.Build();
 
@@ -48,6 +56,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
+app.UseCors(CorsOrigin);
 
 app.UseHttpsRedirection();
 

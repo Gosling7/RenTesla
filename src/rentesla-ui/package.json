@@ -1,5 +1,5 @@
 {
-  "name": "rentesla.ui",
+  "name": "rentesla-ui",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,14 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.4",
     "react": "^19.0.0",
     "react-datepicker": "^8.3.0",
     "react-dom": "^19.0.0",
-    "react-router": "^7.5.2"
+    "react-router": "^7.5.2",
+    "tailwindcss": "^4.1.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
-    "@types/node": "^20",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
