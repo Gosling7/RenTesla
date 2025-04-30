@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RenTesla.API.Data.DTOs;
-using RenTesla.API.Data.Models;
 using RenTesla.API.Interfaces;
 
 namespace RenTesla.API.Controllers;

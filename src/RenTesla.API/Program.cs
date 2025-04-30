@@ -25,6 +25,9 @@ builder.Services.AddDbContext<RenTeslaDbContext>(optionsBuilder =>
 
 builder.Services
     .AddScoped<ICarService, CarService>()
+    .AddScoped<ILocationService, LocationService>()
+    .AddScoped<ICarModelService, CarModelService>()
+    .AddScoped<IReservationService, ReservationService>()
     .AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 
 const string CorsOrigin = "MyCorsOrigin";

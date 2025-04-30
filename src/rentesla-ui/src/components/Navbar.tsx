@@ -9,6 +9,7 @@ const Navbar = () => {
                 <ul className="flex gap-6">
                     <li><Link to="/" className="hover:underline">RenTesla</Link></li>
                     <li><Link to="/about" className="hover:underline">About</Link></li>
+                    <li><Link to="/reservations" className="hover:underline">Reservations</Link></li>
                 </ul>
             </div>
 

@@ -3,6 +3,7 @@
 public class Reservation
 {
     public Guid Id { get; set; }
+    public string ReservationCode { get; set; }
 
     public Guid CarId { get; set; }
     public Guid PickUpLocationId { get; set; }
@@ -17,4 +18,9 @@ public class Reservation
     public Car Car { get; set; } = null!;
     public Location PickUpLocation { get; set; } = null!;
     public Location DropOffLocation { get; set; } = null!;
+
+    public Reservation()
+    {
+        ReservationCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+    }
 }

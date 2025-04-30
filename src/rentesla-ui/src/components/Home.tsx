@@ -1,4 +1,4 @@
-import ReservationForm from './ReservationForm'
+import { ReservationForm } from './ReservationForm'
 import viteLogo from '/vite.svg'
 
 const Home = () => {

@@ -22,7 +22,6 @@ public class CarService : ICarService
     public async Task<IEnumerable<CarModelDTO>> GetCarModelsAsync()
     {
         var carModels = await _dbContext.CarModels.ToListAsync();
-
         return carModels.Select(cm => new CarModelDTO(
             Id: cm.Id.ToString(),
             Name: cm.Name,
