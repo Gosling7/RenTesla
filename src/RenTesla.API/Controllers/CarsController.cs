@@ -32,7 +32,7 @@ public class CarsController : ControllerBase
     }
 
     [HttpGet("Models")]
-    public async Task<ActionResult<IEnumerable<CarModelDTO>>> GetCarModels()
+    public async Task<ActionResult<IEnumerable<CarModelDto>>> GetCarModels()
     {
         return Ok(await _carService.GetCarModelsAsync());
     }

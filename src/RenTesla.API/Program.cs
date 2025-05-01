@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RenTesla.API.Data;
 using RenTesla.API.Interfaces;
@@ -21,6 +22,23 @@ builder.Services.AddDbContext<RenTeslaDbContext>(optionsBuilder =>
         $"Password=Password1!;" +
         "Encrypt=False;" +
         "Trust Server Certificate=True");
+});
+
+builder.Services.AddAuthorization();
+
+//builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+//    .AddEntityFrameworkStores<RenTeslaDbContext>();
+
+builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddEntityFrameworkStores<RenTeslaDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/api/account/login";
+    options.LogoutPath = "/api/account/logout";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 builder.Services
@@ -59,6 +77,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
+app.MapIdentityApi<IdentityUser>();
 
 app.UseCors(CorsOrigin);
 

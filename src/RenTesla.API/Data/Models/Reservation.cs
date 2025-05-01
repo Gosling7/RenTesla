@@ -4,6 +4,7 @@ public class Reservation
 {
     public Guid Id { get; set; }
     public string ReservationCode { get; set; }
+    public string Email { get; set; }
 
     public Guid CarId { get; set; }
     public Guid PickUpLocationId { get; set; }

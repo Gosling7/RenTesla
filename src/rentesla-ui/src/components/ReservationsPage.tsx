@@ -1,5 +1,11 @@
-import { useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import axios, { AxiosResponse } from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+
+interface ReservationResponse {
+  data: ReservationDetails[];
+  errors: string[];
+}
 
 interface ReservationDetails {
   reservationCode: string;
@@ -12,23 +18,39 @@ interface ReservationDetails {
 }
 
 const ReservationsPage = () => {
-  const [code, setCode] = useState('');
-  const [details, setDetails] = useState<ReservationDetails | null>(null);
-  const [error, setError] = useState('');
-
+  const [code, setCode] = useState<string>('');
+  const [details, setDetails] = useState<ReservationDetails[] | null>(null);
+  const [error, setError] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const { isAuthenticated, email: loggedInUserEmail } = useAuth();
+  
   const inputClass =
     'p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full';
   const labelClass = 'text-sm font-medium mb-1';
+
+  useEffect(() => {
+    if (isAuthenticated && loggedInUserEmail) {
+      setEmail(loggedInUserEmail); // Automatically set the email if logged in
+    }
+  }, [isAuthenticated, loggedInUserEmail]);
 
   const handleSearch = async () => {
     try {
       setError('');
       setDetails(null);
+      if (code === '') return;
 
-      const response = await axios.get(`/api/reservations/${code}`);
-      setDetails(response.data);
-    } catch (err) {
-      setError('Reservation not found. Please check your code.');
+      const response: AxiosResponse<ReservationResponse> = isAuthenticated      
+        ? await axios.get(`/api/reservations/${loggedInUserEmail}/${code}`)
+        : await axios.get(`/api/reservations/${email}/${code}`);
+
+      setDetails(response.data.data);
+    } catch (err: any) {
+      if (err.response.status === 404) {
+        setError('No active reservation found.')
+      } else {
+        setError(err.response.data.errors);
+      }
     }
   };
 
@@ -45,6 +67,19 @@ const ReservationsPage = () => {
           className={inputClass}
           placeholder="Enter your reservation code"
         />
+
+        {!isAuthenticated && (
+          <>
+            <label className={labelClass}>Your Email</label>
+            <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={inputClass}
+            placeholder="Enter your email"
+            />
+          </>
+        )}      
       </div>
 
       <button
@@ -56,16 +91,16 @@ const ReservationsPage = () => {
 
       {error && <p className="mt-4 text-red-400">{error}</p>}
 
-      {details && (
+      {details && details.length > 0 && (
         <div className="mt-6 bg-gray-800 p-4 rounded shadow space-y-2">
           <h3 className="text-lg font-semibold">Reservation Details</h3>
-          <p><strong>Code:</strong> {details.reservationCode}</p>
-          <p><strong>Car Model:</strong> {details.carModelName}</p>
-          <p><strong>Pick-up Location:</strong> {details.pickUpLocationName}</p>
-          <p><strong>Drop-off Location:</strong> {details.dropOffLocationName}</p>
-          <p><strong>From:</strong> {new Date(details.from).toLocaleString()}</p>
-          <p><strong>To:</strong> {new Date(details.to).toLocaleString()}</p>
-          <p><strong>Total Cost:</strong> €{details.totalCost}</p>
+          <p><strong>Code:</strong> {details[0].reservationCode}</p>
+          <p><strong>Car Model:</strong> {details[0].carModelName}</p>
+          <p><strong>Pick-up Location:</strong> {details[0].pickUpLocationName}</p>
+          <p><strong>Drop-off Location:</strong> {details[0].dropOffLocationName}</p>
+          <p><strong>From:</strong> {new Date(details[0].from).toLocaleString()}</p>
+          <p><strong>To:</strong> {new Date(details[0].to).toLocaleString()}</p>
+          <p><strong>Total Cost:</strong> €{details[0].totalCost}</p>
         </div>
       )}
     </div>

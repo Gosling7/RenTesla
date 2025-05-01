@@ -1,11 +1,10 @@
 import { ReservationForm } from './ReservationForm'
-import viteLogo from '/vite.svg'
+import './home.css'
 
 const Home = () => {
     return (
         <div>
-            <h1>Home</h1>
-            
+            <h1>Welcome to RenTesla!</h1>            
             <ReservationForm />
         </div>
     )

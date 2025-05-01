@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using RenTesla.API.Data.Models;
 
 namespace RenTesla.API.Data;
 
-public class RenTeslaDbContext : DbContext
+public class RenTeslaDbContext : IdentityDbContext<IdentityUser>
 {
     public RenTeslaDbContext(DbContextOptions<RenTeslaDbContext> options) : base(options)
     {        
@@ -16,6 +18,8 @@ public class RenTeslaDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Car>(carEntity =>
         {
             carEntity.HasOne(c => c.Model)

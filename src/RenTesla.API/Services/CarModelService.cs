@@ -14,17 +14,17 @@ public class CarModelService : ICarModelService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<CarModelDTO>> GetCarModelsAsync()
+    public async Task<IEnumerable<CarModelDto>> GetCarModelsAsync()
     {
         return await _dbContext.CarModels
-            .Select(cm => new CarModelDTO(
+            .Select(cm => new CarModelDto(
                 cm.Id.ToString(),
                 cm.Name,
                 cm.BaseDailyRate))
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<CarModelDTO>> GetAvailableCarModelsAsync(
+    public async Task<IEnumerable<CarModelDto>> GetAvailableCarModelsAsync(
         string pickupLocationId, DateTime from, DateTime to)
     {
         if (!Guid.TryParse(pickupLocationId, out var locatonGuid))
@@ -52,7 +52,7 @@ public class CarModelService : ICarModelService
             .Where(c => !c.Reservations.Any(r =>
                 from < r.To && to > r.From))
             .GroupBy(c => c.Model)
-            .Select(groupByCarModel => new CarModelDTO(
+            .Select(groupByCarModel => new CarModelDto(
                 groupByCarModel.Key.Id.ToString(),
                 groupByCarModel.Key.Name,
                 groupByCarModel.Key.BaseDailyRate))

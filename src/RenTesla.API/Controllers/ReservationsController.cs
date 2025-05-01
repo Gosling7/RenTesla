@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using RenTesla.API.Data;
 using RenTesla.API.Data.DTOs;
+using RenTesla.API.Data.Parameters;
 using RenTesla.API.Interfaces;
 
 namespace RenTesla.API.Controllers;
@@ -17,16 +20,32 @@ public class ReservationsController : ControllerBase
 
     [HttpPost("")]
     public async Task<ActionResult<string>> CreateReservation(
-        [FromBody] CreateReservationParameters parameters)
+        [FromBody] CreateReservationParameter parameters)
     {
         var reservationCode = await _reservationService.CreateReservationAsync(parameters);
 
         return Ok(reservationCode);
     }
 
-    [HttpGet("{reservationCode}")]
-    public async Task<ActionResult<ReservationDTO>> GetReservation(string reservationCode)
+    [HttpGet("{email}/{reservationCode}")]
+    public async Task<ActionResult<Result<ReservationDto>>> GetReservation(
+        string reservationCode, string email)
     {
-        return Ok(await _reservationService.GetReservationByCodeAsync(reservationCode));
+        var result = await _reservationService.GetReservationByCodeAndMailAsync(
+            reservationCode, email);
+        
+        if (!result.Data.Any())
+        {
+            return NotFound(result);
+        }
+
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("{email}")]
+    public async Task<ActionResult<IEnumerable<ReservationDto>>> GetUserReservations(string email)
+    {
+        return Ok(await _reservationService.GetUserReservationsAsync(email));
     }
 }

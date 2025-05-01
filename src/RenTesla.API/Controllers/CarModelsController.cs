@@ -18,14 +18,14 @@ namespace RenTesla.API.Controllers
         }
 
         [HttpGet("")]
-        public async Task<ActionResult<IEnumerable<CarModelDTO>>> GetCarModels()
+        public async Task<ActionResult<IEnumerable<CarModelDto>>> GetCarModels()
         {
             var carModels = await _carModelService.GetCarModelsAsync();
             return Ok(carModels);
         }
 
         [HttpGet("available")]
-        public async Task<ActionResult<IEnumerable<CarModelDTO>>> GetAvailableCarModels(
+        public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAvailableCarModels(
             [FromQuery] string pickupLocationId, DateTime from, DateTime to)
         {
             var availableCarModels = await _carModelService.GetAvailableCarModelsAsync(
