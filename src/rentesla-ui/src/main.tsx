@@ -3,15 +3,15 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { BrowserRouter, Routes, Route } from 'react-router'
 
-import { Home } from './components/Home.tsx'
-import { CreateReservationPage } from './components/CreateReservationPage.tsx'
+import { Home } from './pages/HomePage.tsx'
+import { CreateReservationPage } from './pages/CreateReservationPage.tsx'
 import { DefaultLayout } from './components/DefaultLayout.tsx'
-import { ReservationsPage } from './components/ReservationsPage.tsx'
-import { RegisterPage } from './components/RegisterPage.tsx'
-import { LoginPage } from './components/LoginPage.tsx'
+import { ReservationsPage } from './pages/ReservationsPage.tsx'
+import { RegisterPage } from './pages/RegisterPage.tsx'
+import { LoginPage } from './pages/LoginPage.tsx'
 import { AuthProvider } from './contexts/AuthContext.tsx'
-import { UserPage } from './components/UserPage.tsx'
-import { AboutPage } from './components/AboutPage.tsx'
+import { UserPage } from './pages/UserPage.tsx'
+import { AboutPage } from './pages/AboutPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

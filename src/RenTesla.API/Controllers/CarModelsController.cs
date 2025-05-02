@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RenTesla.API.Data.DTOs;
-using RenTesla.API.Data.Models;
+using RenTesla.API.Data.Requests;
 using RenTesla.API.Interfaces;
 
 namespace RenTesla.API.Controllers
@@ -10,28 +9,31 @@ namespace RenTesla.API.Controllers
     [ApiController]
     public class CarModelsController : ControllerBase
     {
-        private readonly ICarModelService _carModelService;
+        private readonly ICarModelService _service;
 
         public CarModelsController(ICarModelService carModelService)
         {
-            _carModelService = carModelService;
+            _service = carModelService;
         }
 
-        [HttpGet("")]
-        public async Task<ActionResult<IEnumerable<CarModelDto>>> GetCarModels()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAsync(
+            [FromQuery] CarModelQueryRequest query)
         {
-            var carModels = await _carModelService.GetCarModelsAsync();
-            return Ok(carModels);
+            return Ok(await _service.GetAsync(query));
         }
 
-        [HttpGet("available")]
-        public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAvailableCarModels(
-            [FromQuery] string pickupLocationId, DateTime from, DateTime to)
-        {
-            var availableCarModels = await _carModelService.GetAvailableCarModelsAsync(
-                pickupLocationId: pickupLocationId, from: from, to: to);
+        //[HttpGet("")]
+        //public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAll()
+        //{
+        //    return Ok(await _service.GetAllAsync());
+        //}
 
-            return Ok(availableCarModels);
-        }
+        //[HttpGet("available")]
+        //public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAvailable(
+        //    [FromQuery] AvailableCarModelsRequest parameters)
+        //{
+        //    return Ok(await _service.GetAvailableAsync(parameters));
+        //}
     }
 }

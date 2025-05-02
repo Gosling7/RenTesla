@@ -88,7 +88,6 @@ public class DatabaseSeeder : IDatabaseSeeder
             {
                 Id = Guid.NewGuid(),
                 LicensePlate = "License Plate Number 1",
-                IsAvailable = true,
                 ModelId = carTeslaModelS.Id,
                 CurrentLocationId = palmaAirportLocation.Id,
                 Model = carTeslaModelS,
@@ -99,7 +98,6 @@ public class DatabaseSeeder : IDatabaseSeeder
             {
                 Id = Guid.NewGuid(),
                 LicensePlate = "License Plate Number 2",
-                IsAvailable = true,
                 ModelId = carTeslaModelX.Id,
                 CurrentLocationId = palmaAirportLocation.Id,
                 Model = carTeslaModelX,

@@ -24,25 +24,24 @@ builder.Services.AddDbContext<RenTeslaDbContext>(optionsBuilder =>
         "Trust Server Certificate=True");
 });
 
-builder.Services.AddAuthorization();
+//builder.Services.AddAuthorization();
 
-//builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-//    .AddEntityFrameworkStores<RenTeslaDbContext>();
-
-builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<RenTeslaDbContext>();
+
+//builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+//    .AddEntityFrameworkStores<RenTeslaDbContext>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/api/account/login";
-    options.LogoutPath = "/api/account/logout";
+    options.LoginPath = "/api/auth/login";
+    options.LogoutPath = "/api/auth/logout";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 builder.Services
-    .AddScoped<ICarService, CarService>()
     .AddScoped<ILocationService, LocationService>()
     .AddScoped<ICarModelService, CarModelService>()
     .AddScoped<IReservationService, ReservationService>()
@@ -77,8 +76,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
-
-app.MapIdentityApi<IdentityUser>();
 
 app.UseCors(CorsOrigin);
 

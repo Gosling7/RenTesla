@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
-interface ReservationResponse {
-  data: ReservationDetails[];
+interface ApiResponse<TDataType> {
+  isSuccess: boolean;
+  data: TDataType[];
   errors: string[];
 }
 
@@ -38,19 +39,31 @@ const ReservationsPage = () => {
     try {
       setError('');
       setDetails(null);
-      if (code === '') return;
-
-      const response: AxiosResponse<ReservationResponse> = isAuthenticated      
-        ? await axios.get(`/api/reservations/${loggedInUserEmail}/${code}`)
-        : await axios.get(`/api/reservations/${email}/${code}`);
-
-      setDetails(response.data.data);
-    } catch (err: any) {
-      if (err.response.status === 404) {
-        setError('No active reservation found.')
-      } else {
-        setError(err.response.data.errors);
+      if (code === '') {
+        setError('Please enter a reservation code');
+        return;
       }
+
+      if (!isAuthenticated && email === '') {
+        setError('Please enter your email');
+        return;
+      }
+
+      const response = await axios.get<ApiResponse<ReservationDetails>>(`/api/reservations`, {
+        params: {
+          reservationCode: code,
+          email: isAuthenticated ? loggedInUserEmail : email
+        }
+      });
+
+      if (response.data.isSuccess && response.data.data.length == 0)
+      {
+        setError('No active reservation found')
+      } else {
+        setDetails(response.data.data);
+      }
+    } catch (err: any) {
+      setError(err.response.data?.errors?.join(', '));
     }
   };
 

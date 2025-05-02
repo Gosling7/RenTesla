@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using RenTesla.API.Data.Parameters;
+using RenTesla.API.Data.Requests;
 
 namespace RenTesla.API.Controllers;
 

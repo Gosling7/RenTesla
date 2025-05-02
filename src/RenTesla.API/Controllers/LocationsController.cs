@@ -15,11 +15,9 @@ public class LocationsController : ControllerBase
         _locationService = locationService;
     }
 
-    [HttpGet("")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<LocationDto>>> GetLocations()
     {
-        var locations = await _locationService.GetLocationsAsync();
-
-        return Ok(locations);
+        return Ok(await _locationService.GetLocationsAsync());
     }
 }

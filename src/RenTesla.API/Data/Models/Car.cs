@@ -4,7 +4,6 @@ public class Car
 {
     public Guid Id { get; set; }
     public string LicensePlate { get; set; } = string.Empty;
-    public bool IsAvailable { get; set; }
 
     public Guid ModelId { get; set; }
     public Guid CurrentLocationId { get; set; }

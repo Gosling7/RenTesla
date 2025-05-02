@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { LocationDTO } from './InputWithSuggestions';
-import { AvailableModel } from './ReservationForm';
+import { LocationDTO } from '../components/InputWithSuggestions';
+import { AvailableModel } from '../components/ReservationForm';
 import { useLocation, useNavigate } from 'react-router';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';

@@ -16,7 +16,8 @@ public class LocationService : ILocationService
 
     public async Task<IEnumerable<LocationDto>> GetLocationsAsync()
     {
-        var locations = await _dbContext.Locations.ToListAsync();
-        return locations.Select(l => new LocationDto(l.Id.ToString(), l.Name));
+        return await _dbContext.Locations
+            .Select(l => new LocationDto(l.Id.ToString(), l.Name))
+            .ToListAsync();
     }
 }

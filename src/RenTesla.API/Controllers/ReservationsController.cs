@@ -2,8 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using RenTesla.API.Data;
 using RenTesla.API.Data.DTOs;
-using RenTesla.API.Data.Parameters;
+using RenTesla.API.Data.Requests;
 using RenTesla.API.Interfaces;
+using System.Security.Claims;
 
 namespace RenTesla.API.Controllers;
 
@@ -18,34 +19,51 @@ public class ReservationsController : ControllerBase
         _reservationService = reservationService;
     }
 
-    [HttpPost("")]
-    public async Task<ActionResult<string>> CreateReservation(
-        [FromBody] CreateReservationParameter parameters)
+    [HttpPost]
+    public async Task<ActionResult<Result<string>>> CreateReservation(
+        [FromBody] ReservationCreateRequest request)
     {
-        var reservationCode = await _reservationService.CreateReservationAsync(parameters);
+        var result = await _reservationService.CreateReservationAsync(request);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result);
+        }
 
-        return Ok(reservationCode);
+        return Ok(result);
     }
 
-    [HttpGet("{email}/{reservationCode}")]
-    public async Task<ActionResult<Result<ReservationDto>>> GetReservation(
-        string reservationCode, string email)
+    [HttpGet]
+    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> GetReservation(
+        [FromQuery] string reservationCode, string email)
     {
         var result = await _reservationService.GetReservationByCodeAndMailAsync(
-            reservationCode, email);
-        
-        if (!result.Data.Any())
+            reservationCode, email);        
+        if (!result.IsSuccess)
         {
-            return NotFound(result);
+            return BadRequest(result);
         }
 
         return Ok(result);
     }
 
     [Authorize]
-    [HttpGet("{email}")]
-    public async Task<ActionResult<IEnumerable<ReservationDto>>> GetUserReservations(string email)
+    [HttpGet("me")]
+    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> GetUserReservations()
     {
-        return Ok(await _reservationService.GetUserReservationsAsync(email));
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return Unauthorized(new Result<IEnumerable<ReservationDto>>(
+                data: [], 
+                errors: ["Email is missing"]));
+        }
+
+        var result = await _reservationService.GetUserReservationsAsync(email);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
     }
 }

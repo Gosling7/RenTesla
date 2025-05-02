@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+interface ApiResult<TDataType> {
+  isSuccess: boolean;
+  data: TDataType[];
+  errors: string[];
+}
+
 interface ReservationDTO {
   id: string;
   carModelName: string;
@@ -22,8 +28,8 @@ const UserPage = () => {
       try {
         const userRes = await axios.get('/api/auth/me');
         setEmail(userRes.data);
-        const reservationRes = await axios.get(`/api/reservations/${userRes.data}`);        
-        setReservations(reservationRes.data);
+        const result = await axios.get<ApiResult<ReservationDTO>>('/api/reservations/me');        
+        setReservations(result.data.data);
       } catch (err) {
         console.error('Error loading user data:', err);
       } finally {

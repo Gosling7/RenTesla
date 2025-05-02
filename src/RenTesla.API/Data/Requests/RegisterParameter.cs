@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RenTesla.API.Data.Parameters;
+namespace RenTesla.API.Data.Requests;
 
 public record RegisterParameter
 {
