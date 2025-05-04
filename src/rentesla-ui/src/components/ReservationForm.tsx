@@ -1,14 +1,8 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
-import { InputWithSuggestions, LocationDTO } from './InputWithSuggestions';
+import { InputWithSuggestions } from './InputWithSuggestions';
 import { useNavigate } from 'react-router';
-
-interface AvailableModel {
-  id: string;
-  name: string;
-  dailyRate: number;
-  availableCount: number;
-};
+import { ApiResult, AvailableModelDto, LocationDto } from '../types/ApiResults';
 
 const ReservationForm = () => {
   const [pickUpLocationId, setPickUpLocationId] = useState('');
@@ -17,14 +11,14 @@ const ReservationForm = () => {
   const [dropoffLocationName, setDropoffLocationName] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [availableModels, setAvailableModels] = useState<AvailableModel[]>([]);
-  const [locations, setLocations] = useState<LocationDTO[]>([]);
+  const [availableModels, setAvailableModels] = useState<AvailableModelDto[]>([]);
+  const [locations, setLocations] = useState<LocationDto[]>([]);
 
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const response = await axios.get<LocationDTO[]>(`/api/locations`);     
-        setLocations(response.data)
+        const response = await axios.get<ApiResult<LocationDto[]>>(`/api/locations`);     
+        setLocations(response.data.data)
       } catch (error) {
         console.error('Error fetching locations: ', error);
       }
@@ -42,7 +36,7 @@ const ReservationForm = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.get<AvailableModel[]>('api/car-models', {
+      const response = await axios.get<ApiResult<AvailableModelDto[]>>('api/car-models', {
         params: {
           available: true,
           pickupLocationId: pickUpLocationId,
@@ -50,7 +44,7 @@ const ReservationForm = () => {
           to: to
         }
       });
-      setAvailableModels(response.data);
+      setAvailableModels(response.data.data);
     } catch (error) {
       console.error('Error fetching available models: ', error);
     }
@@ -159,4 +153,3 @@ const ReservationForm = () => {
 };
 
 export { ReservationForm };
-export type { AvailableModel };

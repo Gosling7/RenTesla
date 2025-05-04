@@ -19,16 +19,11 @@ public class ReservationService : IReservationService
         _dbContext = dbContext;
     }
 
-    public async Task<Result<IEnumerable<ReservationDto>>> GetReservationByCodeAndMailAsync(
+    public async Task<Result<IEnumerable<ReservationDto>>> GetByCodeAndMailAsync(
         string reservationCode, string email)
     {
         List<string> errors = [];
-
-        var emailValidator = new EmailAddressAttribute();
-        if (!emailValidator.IsValid(email))
-        {
-            errors.Add("Invalid email address format");
-        }
+        ValidateEmail(email, errors);
         if (reservationCode.Length != 8)
         {
             errors.Add("Invalid reservation code format");
@@ -65,14 +60,10 @@ public class ReservationService : IReservationService
             errors: []);
     }
 
-    public async Task<Result<IEnumerable<ReservationDto>>> GetUserReservationsAsync(string email)
+    public async Task<Result<IEnumerable<ReservationDto>>> GetByUserAsync(string email)
     {
         List<string> errors = [];
-
-        if (!_emailValidator.IsValid(email))
-        {
-            errors.Add("Invalid email address format");
-        }
+        ValidateEmail(email, errors);
         if (errors.Count != 0)
         {
             return new Result<IEnumerable<ReservationDto>>(data: [], errors: errors);
@@ -99,7 +90,15 @@ public class ReservationService : IReservationService
             errors: []);
     }
 
-    public async Task<Result<string>> CreateReservationAsync(
+    private void ValidateEmail(string email, List<string> errors)
+    {
+        if (!_emailValidator.IsValid(email))
+        {
+            errors.Add("Invalid email address format");
+        }
+    }
+
+    public async Task<Result<string>> CreateAsync(
         ReservationCreateRequest request)
     {
         List<string> errors = [];

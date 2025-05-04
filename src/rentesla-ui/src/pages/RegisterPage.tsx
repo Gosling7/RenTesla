@@ -1,16 +1,27 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import axios from 'axios';
+import { AuthRequest } from '../types/ApiRequests';
+import { useAuth } from '../contexts/AuthContext';
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const { setAuthenticated, setUserEmail } = useAuth();
+  const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('/api/auth/register', { email, password });
-      setMessage('Registration successful. You can now log in.');
+      const request: AuthRequest = { email, password };
+      await axios.post('/api/auth/register', request);
+
+      const loginResponse = await axios.post('/api/auth/login', request);
+      setAuthenticated(true);
+      setUserEmail(loginResponse.data);
+
+      navigate('/', { state: { loginSuccess: true } });
     } catch (error: any) {
       setMessage(error.response?.data || 'Registration failed');
     }

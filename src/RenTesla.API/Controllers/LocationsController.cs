@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RenTesla.API.Data;
 using RenTesla.API.Data.DTOs;
 using RenTesla.API.Interfaces;
 
@@ -16,7 +17,7 @@ public class LocationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<LocationDto>>> GetLocations()
+    public async Task<ActionResult<Result<IEnumerable<LocationDto>>>> GetLocations()
     {
         return Ok(await _locationService.GetLocationsAsync());
     }

@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { LocationDTO } from '../components/InputWithSuggestions';
-import { AvailableModel } from '../components/ReservationForm';
 import { useLocation, useNavigate } from 'react-router';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { ApiResult, AvailableModelDto, LocationDto } from '../types/ApiResults';
+import { CreateReservationRequest } from '../types/ApiRequests';
 
 const CreateReservationPage = () => {
   const navigate = useNavigate();
@@ -15,18 +15,19 @@ const CreateReservationPage = () => {
     from, 
     to, 
     locations = []
-}: {
-    selectedModel: AvailableModel;
-    pickupLocationId: string;
-    dropoffLocationId: string;
-    from: string;
-    to: string;
-    locations: LocationDTO[]
-} = state || {};
+  }: {
+      selectedModel: AvailableModelDto;
+      pickupLocationId: string;
+      dropoffLocationId: string;
+      from: string;
+      to: string;
+      locations: LocationDto[]
+  } = state || {};
+
   const [reservationCode, setReservationCode] = useState<string | null>(null);
   const [email, setEmail] = useState<string>('');
-  const [createAccount, setCreateAccount] = useState(false);
-  const [password, setPassword] = useState('');
+  const [createAccount, setCreateAccount] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>('');
   const { setAuthenticated, isAuthenticated, email: loggedInUserEmail } = useAuth();
 
   if (!selectedModel) {
@@ -48,17 +49,18 @@ const CreateReservationPage = () => {
 
   const handleConfirmReservation = async () => {
     try {
-      // 1. Make reservation
-      const response = await axios.post('/api/reservations', {
-        CarModelId: selectedModel.id,
-        PickUpLocationId: pickupLocationId,
-        DropOffLocationId: dropoffLocationId,
-        From: from,
-        To: to,
-        Email: isAuthenticated ? loggedInUserEmail : email
-      });
+      const requestData: CreateReservationRequest = {
+        email: isAuthenticated ? loggedInUserEmail! : email,
+        carModelId: selectedModel.id,
+        pickUpLocationId: pickupLocationId,
+        dropOffLocationId: dropoffLocationId,
+        from: from,
+        to: to,
+      };
 
-      const reservationCode = response.data;
+      // 1. Make reservation
+      const response = await axios.post<ApiResult<string>>('/api/reservations', requestData);
+      const reservationCode = response.data.data;
       setReservationCode(reservationCode);
 
       // 2. If user wants to create an account
@@ -103,44 +105,33 @@ const CreateReservationPage = () => {
           <p>To: {new Date(to).toLocaleString()}</p>
         </div>
 
-        {/* Email Input Field */}
-        {/* <div className="bg-gray-700 rounded-lg p-4 col-span-1 sm:col-span-2">
-          <h2 className="text-xl font-semibold mb-2">Your Email</h2>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 rounded-lg bg-gray-600 text-white"
-            placeholder="Enter your email"
-          />
-        </div> */}
       </div>
       {!isAuthenticated && (
         <>
           {/* Account Creation Checkbox */}
           <div className="col-span-1 mt-10 sm:col-span-2">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={createAccount}
-              onChange={() => setCreateAccount(prev => !prev)}
-              className="form-checkbox h-4 w-4 text-blue-600"
-            />
-            <span>Create an account with this email</span>
-          </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={createAccount}
+                onChange={() => setCreateAccount(prev => !prev)}
+                className="form-checkbox h-4 w-4 text-blue-600"
+              />
+              <span>Create an account with this email</span>
+            </label>
           </div>
 
           {/* Email Input */}
           <div className="bg-gray-700 rounded-lg p-4 col-span-1 sm:col-span-2">
-          <h2 className="text-xl font-semibold mb-2">Your Email</h2>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="w-full p-2 rounded-lg bg-gray-600 text-white"
-            placeholder="Enter your email"
-            required
-          />
+            <h2 className="text-xl font-semibold mb-2">Your Email</h2>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full p-2 rounded-lg bg-gray-600 text-white"
+              placeholder="Enter your email"
+              required
+            />
           </div>
 
           {/* Password Input (conditionally shown) */}
@@ -158,8 +149,7 @@ const CreateReservationPage = () => {
           </div>
           )}
         </>
-      )}
-      
+      )}      
 
       {reservationCode ? (
         <div className="mt-6 text-center">
@@ -181,45 +171,3 @@ const CreateReservationPage = () => {
 };
 
 export { CreateReservationPage };
-
-
-// {/* Account Creation Checkbox */}
-// <div className="col-span-1 mt-10 sm:col-span-2">
-// <label className="flex items-center space-x-2">
-//   <input
-//     type="checkbox"
-//     checked={createAccount}
-//     onChange={() => setCreateAccount(prev => !prev)}
-//     className="form-checkbox h-4 w-4 text-blue-600"
-//   />
-//   <span>Create an account with this email</span>
-// </label>
-// </div>
-
-// {/* Email Input */}
-// <div className="bg-gray-700 rounded-lg p-4 col-span-1 sm:col-span-2">
-// <h2 className="text-xl font-semibold mb-2">Your Email</h2>
-// <input
-//   type="email"
-//   value={email}
-//   onChange={e => setEmail(e.target.value)}
-//   className="w-full p-2 rounded-lg bg-gray-600 text-white"
-//   placeholder="Enter your email"
-//   required
-// />
-// </div>
-
-// {/* Password Input (conditionally shown) */}
-// {createAccount && (
-// <div className="bg-gray-700 rounded-lg mt-2 p-4 col-span-1 sm:col-span-2">
-//   <h2 className="text-xl font-semibold mb-2">Password</h2>
-//   <input
-//     type="password"
-//     value={password}
-//     onChange={e => setPassword(e.target.value)}
-//     className="w-full p-2 rounded-lg bg-gray-600 text-white"
-//     placeholder="Enter a password"
-//     required={createAccount}
-//   />
-// </div>
-// )}

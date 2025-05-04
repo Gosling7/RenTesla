@@ -20,14 +20,16 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterParameter parameter)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest parameter)
     {
         var user = new IdentityUser 
         { 
             UserName = parameter.Email, 
             Email = parameter.Email 
         };
-        var result = await _userManager.CreateAsync(user, parameter.Password);
+        var result = await _userManager.CreateAsync(
+            user: user,
+            password: parameter.Password);
 
         if (!result.Succeeded)
         {
@@ -39,10 +41,13 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginParameter parameter)
+    public async Task<IActionResult> Login([FromBody] LoginRequest parameter)
     {
         var result = await _signInManager.PasswordSignInAsync(
-            parameter.Email, parameter.Password, false, false);
+            userName: parameter.Email, 
+            password: parameter.Password, 
+            isPersistent: false, 
+            lockoutOnFailure: false);
         if (!result.Succeeded)
         {
             return Unauthorized();

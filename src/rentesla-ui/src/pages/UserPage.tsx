@@ -1,36 +1,27 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-
-interface ApiResult<TDataType> {
-  isSuccess: boolean;
-  data: TDataType[];
-  errors: string[];
-}
-
-interface ReservationDTO {
-  id: string;
-  carModelName: string;
-  pickUpLocationName: string;
-  dropOffLocationName: string;
-  from: string;
-  to: string;
-  totalCost: number;
-  reservationCode: string;
-}
+import { ApiResult, ReservationDto } from '../types/ApiResults';
+import { useAuth } from '../contexts/AuthContext';
 
 const UserPage = () => {
   const [email, setEmail] = useState('');
-  const [reservations, setReservations] = useState<ReservationDTO[]>([]);
+  const [reservations, setReservations] = useState<ReservationDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated, } = useAuth();
 
   useEffect(() => {
     const loadUserData = async () => {
       try {
         const userRes = await axios.get('/api/auth/me');
         setEmail(userRes.data);
-        const result = await axios.get<ApiResult<ReservationDTO>>('/api/reservations/me');        
+        const result = await axios.get<ApiResult<ReservationDto[]>>('/api/reservations/me');        
         setReservations(result.data.data);
-      } catch (err) {
+      } catch (err: any) {
+        if (err.response.status === 405) {
+          console.log("method not allowed");
+        }
+          
+
         console.error('Error loading user data:', err);
       } finally {
         setLoading(false);
@@ -41,10 +32,18 @@ const UserPage = () => {
   }, []);
 
   const now = new Date();
-  const activeReservations = reservations.filter(r => new Date(r.to) > now);
-  const pastReservations = reservations.filter(r => new Date(r.to) <= now);
+  const activeReservations:ReservationDto[] = reservations.filter(r => new Date(r.to) > now);
+  const pastReservations:ReservationDto[] = reservations.filter(r => new Date(r.to) <= now);
 
   if (loading) return <div className="text-white p-6">Loading dashboard...</div>;
+
+  if (!isAuthenticated) {
+    return (
+      <div className="text-white p-6">
+        <p>Please <a href="/login" className="text-blue-400 underline">log in</a> to access your dashboard.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto mt-10 text-white">

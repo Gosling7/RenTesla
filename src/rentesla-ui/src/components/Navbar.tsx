@@ -33,28 +33,28 @@ const Navbar = () => {
 
                 {!isAuthenticated && (
                     <>
-                    <Link
+                      <Link
                         to="/register"
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-                    >
+                      >
                         Register
-                    </Link>
-                    <Link
+                      </Link>
+                      <Link
                         to="/login"
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-                    >
+                      >
                         Login
-                    </Link>
+                      </Link>
                     </>
                 )}
 
                 {isAuthenticated && (
-                    <button
-                        onClick={handleLogout}
-                        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
-                    >
-                        Logout
-                    </button>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
+                  >
+                    Logout
+                  </button>
                 )}
                 </div>
             </div>
@@ -63,37 +63,3 @@ const Navbar = () => {
 };
 
 export { Navbar };
-
-
-{/* Register button stays at the right */}
-            {/* <div className="ml-auto flex gap-5">
-                {!isAuthenticated && (
-                    <Link to="/register" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
-                        Register
-                    </Link>
-                )}
-                
-                {!isAuthenticated && (
-                    <Link to="/login" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
-                        Login
-                    </Link>
-                )}
-
-                {isAuthenticated && (
-                    // <Link to="/user" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"></Link>
-                    <Link to="/user" className=" text-white px-4 py-2 rounded hover:underline">
-                        Account
-                    </Link>
-                )}
-
-                {isAuthenticated && (
-                    <button
-                        onClick={handleLogout}
-                        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
-                    >
-                        Logout
-                    </button>
-                )}
-
-                </div>
-            </div> */}

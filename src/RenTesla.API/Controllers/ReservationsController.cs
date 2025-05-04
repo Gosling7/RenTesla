@@ -20,10 +20,10 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Result<string>>> CreateReservation(
+    public async Task<ActionResult<Result<string>>> Create(
         [FromBody] ReservationCreateRequest request)
     {
-        var result = await _reservationService.CreateReservationAsync(request);
+        var result = await _reservationService.CreateAsync(request);
         if (!result.IsSuccess)
         {
             return BadRequest(result);
@@ -31,13 +31,13 @@ public class ReservationsController : ControllerBase
 
         return Ok(result);
     }
-
+ 
     [HttpGet]
-    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> GetReservation(
+    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> Get(
         [FromQuery] string reservationCode, string email)
     {
-        var result = await _reservationService.GetReservationByCodeAndMailAsync(
-            reservationCode, email);        
+        var result = await _reservationService.GetByCodeAndMailAsync(
+            reservationCode: reservationCode, email: email);        
         if (!result.IsSuccess)
         {
             return BadRequest(result);
@@ -48,7 +48,7 @@ public class ReservationsController : ControllerBase
 
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> GetUserReservations()
+    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> GetByUser()
     {
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
         if (string.IsNullOrWhiteSpace(email))
@@ -58,7 +58,7 @@ public class ReservationsController : ControllerBase
                 errors: ["Email is missing"]));
         }
 
-        var result = await _reservationService.GetUserReservationsAsync(email);
+        var result = await _reservationService.GetByUserAsync(email);
         if (!result.IsSuccess)
         {
             return BadRequest(result);

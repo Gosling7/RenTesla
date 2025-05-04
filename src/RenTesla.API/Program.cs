@@ -24,13 +24,8 @@ builder.Services.AddDbContext<RenTeslaDbContext>(optionsBuilder =>
         "Trust Server Certificate=True");
 });
 
-//builder.Services.AddAuthorization();
-
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<RenTeslaDbContext>();
-
-//builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-//    .AddEntityFrameworkStores<RenTeslaDbContext>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -63,6 +58,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<RenTeslaDbContext>();
     await dbContext.Database.MigrateAsync();
+    // TODO: sprawdziæ Anu() wszystkie seedowane tabelki
     if (!dbContext.CarModels.Any())
     {
         var databaseSeeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();

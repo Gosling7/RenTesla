@@ -1,15 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-
-export interface LocationDTO {
-  id: string;
-  name: string;
-}
+import { LocationDto } from "../types/ApiResults";
 
 type InputWithSuggetionsProps = {
   label: string;
   value: string;
   onChange: (name: string) => void;
-  suggestions: LocationDTO[];
+  suggestions: LocationDto[];
 }
 
 const InputWithSuggestions: React.FC<InputWithSuggetionsProps> = ({
@@ -39,7 +35,7 @@ const InputWithSuggestions: React.FC<InputWithSuggetionsProps> = ({
   };
 
   useEffect(() => {
-    setInputText(value); // Update local when external value changes
+    setInputText(value);
   }, [value]);
   
     return (

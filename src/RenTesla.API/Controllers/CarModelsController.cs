@@ -1,39 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RenTesla.API.Data;
 using RenTesla.API.Data.DTOs;
 using RenTesla.API.Data.Requests;
 using RenTesla.API.Interfaces;
 
-namespace RenTesla.API.Controllers
+namespace RenTesla.API.Controllers;
+
+[Route("api/car-models")]
+[ApiController]
+public class CarModelsController : ControllerBase
 {
-    [Route("api/car-models")]
-    [ApiController]
-    public class CarModelsController : ControllerBase
+    private readonly ICarModelService _service;
+
+    public CarModelsController(ICarModelService carModelService)
     {
-        private readonly ICarModelService _service;
+        _service = carModelService;
+    }
 
-        public CarModelsController(ICarModelService carModelService)
-        {
-            _service = carModelService;
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAsync(
-            [FromQuery] CarModelQueryRequest query)
-        {
-            return Ok(await _service.GetAsync(query));
-        }
-
-        //[HttpGet("")]
-        //public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAll()
-        //{
-        //    return Ok(await _service.GetAllAsync());
-        //}
-
-        //[HttpGet("available")]
-        //public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAvailable(
-        //    [FromQuery] AvailableCarModelsRequest parameters)
-        //{
-        //    return Ok(await _service.GetAvailableAsync(parameters));
-        //}
+    [HttpGet]
+    public async Task<ActionResult<Result<IEnumerable<CarModelDto>>>> GetAsync(
+        [FromQuery] CarModelQueryRequest query)
+    {
+        return Ok(await _service.GetAsync(query));
     }
 }

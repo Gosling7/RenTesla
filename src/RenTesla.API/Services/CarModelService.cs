@@ -15,48 +15,38 @@ public class CarModelService : ICarModelService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<CarModelDto>> GetAsync(CarModelQueryRequest query)
+    public async Task<Result<IEnumerable<CarModelDto>>> GetAsync(CarModelQueryRequest request)
     {
-        var carModels = _dbContext.CarModels.AsQueryable();
+        List<string> errors = [];
 
-        if (query.Available == true)
+        var query = _dbContext.CarModels.AsQueryable();
+
+        if (request.Available == true)
         {
-            if (!query.PickUpLocationId.HasValue
-                || !query.From.HasValue
-                || !query.To.HasValue)
+            if (!request.PickUpLocationId.HasValue
+                || !request.From.HasValue
+                || !request.To.HasValue)
             {
-                throw new ArgumentException("PickUpLocationId, From and To must be provided when Available=true.");
+                return new Result<IEnumerable<CarModelDto>>(
+                    data: [], 
+                    errors: ["PickUpLocationId, From and To must be provided when Available=true"]);
             }
 
-            carModels = carModels
+            query = query
+                .Include(cm => cm.Cars)
                 .Where(cm => cm.Cars.Any(c =>
-                    c.CurrentLocationId == query.PickUpLocationId
+                    c.CurrentLocationId == request.PickUpLocationId
                     && !c.Reservations.Any(r => 
-                        query.From < r.To && query.To > r.From)));
+                        request.From < r.To && request.To > r.From)));
         }
 
-        return await carModels
+        var carModels = await query
             .Select(cm => new CarModelDto(
                 cm.Id.ToString(),
                 cm.Name,
                 cm.BaseDailyRate))
             .ToListAsync();
+
+        return new Result<IEnumerable<CarModelDto>>(data: carModels, errors: errors);
     }
-
-    //public async Task<IEnumerable<CarModelDto>> GetAvailableAsync(
-    //    AvailableCarModelsRequest parameters)
-    //{
-    //    var locationId = Guid.Parse(parameters.PickUpLocationId);
-
-    //    return await _dbContext.Cars
-    //        .Where(c => c.CurrentLocationId == locationId && c.IsAvailable)
-    //        .Where(c => !c.Reservations.Any(r =>
-    //            parameters.From < r.To && parameters.To > r.From))
-    //        .GroupBy(c => c.Model)
-    //        .Select(groupByCarModel => new CarModelDto(
-    //            groupByCarModel.Key.Id.ToString(),
-    //            groupByCarModel.Key.Name,
-    //            groupByCarModel.Key.BaseDailyRate))
-    //        .ToListAsync();
-    //}
 }

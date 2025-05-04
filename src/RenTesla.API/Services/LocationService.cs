@@ -14,10 +14,13 @@ public class LocationService : ILocationService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<LocationDto>> GetLocationsAsync()
+    public async Task<Result<IEnumerable<LocationDto>>> GetLocationsAsync()
     {
-        return await _dbContext.Locations
+        var locations = await _dbContext.Locations
             .Select(l => new LocationDto(l.Id.ToString(), l.Name))
             .ToListAsync();
+
+        return new Result<IEnumerable<LocationDto>>(
+            data: locations, errors: []);
     }
 }

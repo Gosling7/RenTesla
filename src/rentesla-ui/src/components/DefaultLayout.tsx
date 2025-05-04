@@ -6,7 +6,7 @@ const DefaultLayout = () => {
         <div className="flex flex-col min-h-screen">
             <Navbar />
             <main className="flex-grow">
-                <Outlet /> {/* This will render the current page inside the layout */}
+                <Outlet />
             </main>
         </div>
     );

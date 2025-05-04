@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-
-interface CarModel {
-    id: string;
-    name: string;
-    baseDailyRate: number;
-  }
+import { ApiResult, CarModelDto } from '../types/ApiResults';
 
 const getImageForModel = (name: string): string => {
     const map: Record<string, string> = {
@@ -15,27 +10,25 @@ const getImageForModel = (name: string): string => {
       'Tesla Model X': '/images/tesla-model-x.jpg',
       'Tesla Cybertruck': '/images/tesla-cybertruck.jpg',
     };
-    return map[name] || '/images/default-car.jpg';
+    return map[name];
   };
 
 const AboutPage = () => {
-    const [carModels, setCarModels] = useState<CarModel[]>([]);
+    const [carModels, setCarModels] = useState<CarModelDto[]>([]);
     const [error, setError] = useState<string>('');
   
     useEffect(() => {
       const fetchCarModels = async () => {
         try {
-          const response = await axios.get('/api/car-models');
-          setCarModels(response.data);
+          const response = await axios.get<ApiResult<CarModelDto[]>>('/api/car-models');
+          setCarModels(response.data.data);
         } catch (err: any) {
           setError('Failed to load car models.');
         }
       };
   
       fetchCarModels();
-    }, []);    
-  
-    
+    }, []);
 
     return (
         <div className="bg-gray-900 text-white p-8 max-w-5xl mx-auto mt-10 rounded-xl shadow-lg">
@@ -48,7 +41,7 @@ const AboutPage = () => {
     
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {carModels.map((model) => (
-                <div key={model.id} className="bg-gray-800 rounded-lg overflow-hidden shadow hover:shadow-xl transition-shadow">
+                <div key={model.id} className="bg-gray-800 rounded-lg overflow-hidden shadow">
                     <img
                         src={getImageForModel(model.name)}
                         alt={model.name}
