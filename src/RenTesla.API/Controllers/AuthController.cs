@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using RenTesla.API.Data;
+using RenTesla.API.Data.DataTransferObjects;
 using RenTesla.API.Data.Requests;
 
 namespace RenTesla.API.Controllers;
@@ -12,7 +14,7 @@ public class AuthController : ControllerBase
     private readonly UserManager<IdentityUser> _userManager;
 
     public AuthController(
-        SignInManager<IdentityUser> signInManager, 
+        SignInManager<IdentityUser> signInManager,
         UserManager<IdentityUser> userManager)
     {
         _signInManager = signInManager;
@@ -22,10 +24,10 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest parameter)
     {
-        var user = new IdentityUser 
-        { 
-            UserName = parameter.Email, 
-            Email = parameter.Email 
+        var user = new IdentityUser
+        {
+            UserName = parameter.Email,
+            Email = parameter.Email
         };
         var result = await _userManager.CreateAsync(
             user: user,
@@ -41,19 +43,25 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest parameter)
+    public async Task<ActionResult<Result<UserInfoDto>>> Login(
+        [FromBody] LoginRequest parameter)
     {
         var result = await _signInManager.PasswordSignInAsync(
-            userName: parameter.Email, 
-            password: parameter.Password, 
-            isPersistent: false, 
+            userName: parameter.Email,
+            password: parameter.Password,
+            isPersistent: false,
             lockoutOnFailure: false);
         if (!result.Succeeded)
         {
             return Unauthorized();
         }
 
-        return Ok();
+        var user = await _userManager.GetUserAsync(User);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return Ok(new Result<UserInfoDto>(
+            data: new UserInfoDto(Email: user.Email, Roles: roles),
+            errors: []));
     }
 
     [HttpPost("logout")]
@@ -64,8 +72,18 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("me")]
-    public IActionResult Me()
+    public async Task<ActionResult<Result<UserInfoDto>>> Me()
     {
-        return Ok(User.Identity?.Name ?? "");
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized(new Result<UserInfoDto>(data: null, errors: []));
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return Ok(new Result<UserInfoDto>(
+            data: new UserInfoDto(Email: user.Email, Roles: roles),
+            errors: []));
     }
 }

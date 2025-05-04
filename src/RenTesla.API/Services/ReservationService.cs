@@ -13,10 +13,13 @@ public class ReservationService : IReservationService
     private readonly RenTeslaDbContext _dbContext;
     private readonly DateTime _utcNow = DateTime.UtcNow;
     private readonly EmailAddressAttribute _emailValidator = new();
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ReservationService(RenTeslaDbContext dbContext)
+    public ReservationService(RenTeslaDbContext dbContext, 
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Result<IEnumerable<ReservationDto>>> GetByCodeAndMailAsync(
@@ -38,7 +41,10 @@ public class ReservationService : IReservationService
             .ThenInclude(c => c.Model)
             .Include(r => r.PickUpLocation)
             .Include(r => r.DropOffLocation)
-            .Where(r => r.ReservationCode == reservationCode && r.Email == email)
+            .Where(r => 
+                r.ReservationCode == reservationCode 
+                && r.Email == email
+                && r.Status != ReservationStatus.Completed)
             .Where(r => r.To > _utcNow)
             .FirstOrDefaultAsync();
         if (reservation is null)
@@ -50,19 +56,23 @@ public class ReservationService : IReservationService
 
         return new Result<IEnumerable<ReservationDto>>(
             data: [ new ReservationDto(
+                Id: reservation.Id.ToString(),
                 ReservationCode: reservationCode,
                 CarModelName: reservation.Car.Model.Name,
                 PickUpLocationName: reservation.PickUpLocation.Name,
                 DropOffLocationName: reservation.DropOffLocation.Name,
                 From: reservation.From,
                 To: reservation.To,
-                TotalCost: reservation.TotalCost) ],
+                Status: reservation.Status,
+                TotalCost: reservation.TotalCost) 
+            ],
             errors: []);
     }
 
     public async Task<Result<IEnumerable<ReservationDto>>> GetByUserAsync(string email)
     {
         List<string> errors = [];
+
         ValidateEmail(email, errors);
         if (errors.Count != 0)
         {
@@ -76,12 +86,14 @@ public class ReservationService : IReservationService
             .Include(r => r.DropOffLocation)
             .Where(r => r.Email == email)
             .Select(r => new ReservationDto(
+                r.Id.ToString(),
                 r.ReservationCode,
                 r.Car.Model.Name,
                 r.PickUpLocation.Name,
                 r.DropOffLocation.Name,
                 r.From,
                 r.To,
+                r.Status,
                 r.TotalCost))
             .ToListAsync();
 
@@ -90,20 +102,12 @@ public class ReservationService : IReservationService
             errors: []);
     }
 
-    private void ValidateEmail(string email, List<string> errors)
-    {
-        if (!_emailValidator.IsValid(email))
-        {
-            errors.Add("Invalid email address format");
-        }
-    }
-
     public async Task<Result<string>> CreateAsync(
         ReservationCreateRequest request)
     {
         List<string> errors = [];
 
-        ParseParameters(request, errors,
+        ParseRequest(request, errors,
             out Guid carModelId,
             out Guid pickUpLocationId, out Guid dropOffLocationId,
             out DateTime fromDate, out DateTime toDate);
@@ -125,9 +129,14 @@ public class ReservationService : IReservationService
         }
 
         var availableCar = await _dbContext.Cars
-            .Where(c => c.ModelId == carModelId && !c.Reservations.Any(r =>
-                toDate > r.From && fromDate < r.To))
+            .Where(c =>
+                c.IsAvailable
+                && c.ModelId == carModelId
+                && !c.Reservations.Any(r =>                    
+                    toDate > r.From && fromDate < r.To
+                    && r.Status != ReservationStatus.Completed))
             .FirstOrDefaultAsync();
+
         if (availableCar is null)
         {
             errors.Add("No available car for this model");
@@ -175,15 +184,98 @@ public class ReservationService : IReservationService
             errors: []);
     }
 
-    private void ParseParameters(ReservationCreateRequest parameters, List<string> errors,
+    public async Task<Result> ConfirmReturnAsync(string id)
+    {
+        List<string> errors = [];
+
+        var user = _httpContextAccessor.HttpContext?.User;
+        if (user is null)
+        {
+            
+        }
+
+        var isStaffRole = user.IsInRole("Staff");
+        var email = user.Identity?.Name;
+
+        var reservationId = Guid.Parse(id);
+
+        var reservation = await _dbContext.Reservations.FindAsync(reservationId);
+        if (reservation is null)
+        {
+            return new Result(errors: ["Reservation not found"]);
+        }
+
+        if (isStaffRole)
+        {
+            if (reservation.StaffConfirmedReturn)
+            {
+                return new Result(errors: ["Return already confirmed by staff"]);
+            }
+
+            reservation.StaffConfirmedReturn = true;
+        }
+        else
+        {
+            if (reservation.UserConfirmedReturn)
+            {
+                return new Result(errors: ["Return already confirmed by user"]);
+            }
+            reservation.UserConfirmedReturn = true;
+        }
+
+        if (reservation.StaffConfirmedReturn && reservation.UserConfirmedReturn)
+        {
+            var reservedCar = await _dbContext.Cars.FindAsync(reservation.CarId);
+            reservedCar.CurrentLocation = reservation.DropOffLocation;
+            reservedCar.CurrentLocationId = reservation.DropOffLocationId;
+            reservation.Status = ReservationStatus.Completed;
+            reservation.ReturnConfirmedDate = DateTime.UtcNow;
+        }
+        else
+        {
+            reservation.Status = ReservationStatus.PendingReturn;
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        return new Result(errors: errors);
+    }
+
+    public async Task<Result<IEnumerable<ReservationDto>>> GetActiveReservations()
+    {
+        var reservations = await _dbContext.Reservations
+            .Include(r => r.Car)
+            .ThenInclude(c => c.Model)
+            .Where(r => r.Status == ReservationStatus.PendingReturn)
+            .Select(r => new ReservationDto(
+                r.Id.ToString(),
+                r.ReservationCode,
+                r.Car.Model.Name,
+                r.PickUpLocation.Name,
+                r.DropOffLocation.Name,
+                r.From,
+                r.To,
+                r.Status,
+                r.TotalCost))
+            .ToListAsync();
+
+        return new Result<IEnumerable<ReservationDto>>(data: reservations, errors: []);
+    }
+
+    private void ValidateEmail(string email, List<string> errors)
+    {
+        if (!_emailValidator.IsValid(email))
+        {
+            errors.Add("Invalid email address format");
+        }
+    }
+
+    private void ParseRequest(ReservationCreateRequest parameters, List<string> errors,
         out Guid carModelId,
         out Guid pickUpLocationId, out Guid dropOffLocationId,
         out DateTime fromDate, out DateTime toDate)
     {
-        if (!_emailValidator.IsValid(parameters.Email))
-        {
-            errors.Add("Invalid email address format");
-        }
+        ValidateEmail(parameters.Email, errors);
         if (!Guid.TryParse(parameters.CarModelId, out carModelId))
         {
             errors.Add("Invalid CarModelId GUID format");

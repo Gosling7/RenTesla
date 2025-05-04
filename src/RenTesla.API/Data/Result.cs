@@ -1,4 +1,6 @@
-﻿namespace RenTesla.API.Data;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace RenTesla.API.Data;
 
 public record Result<TDataType>
 {
@@ -17,4 +19,8 @@ public record Result
 {
     public bool IsSuccess => Errors.Count == 0;
     public IReadOnlyCollection<string> Errors { get; init; } = [];
+    public Result(IReadOnlyCollection<string> errors)
+    {
+        Errors = errors;
+    }
 }

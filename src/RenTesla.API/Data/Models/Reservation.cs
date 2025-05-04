@@ -3,6 +3,12 @@
 public class Reservation
 {
     public Guid Id { get; set; }
+
+    public bool UserConfirmedReturn { get; set; }
+    public bool StaffConfirmedReturn { get; set; }
+    public ReservationStatus Status { get; set; }
+    public DateTime? ReturnConfirmedDate { get; set; }
+
     public string ReservationCode { get; set; }
     public string Email { get; set; }
 

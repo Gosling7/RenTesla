@@ -12,18 +12,18 @@ namespace RenTesla.API.Controllers;
 [ApiController]
 public class ReservationsController : ControllerBase
 {
-    private readonly IReservationService _reservationService;
+    private readonly IReservationService _service;
 
     public ReservationsController(IReservationService reservationService)
     {
-        _reservationService = reservationService;
+        _service = reservationService;
     }
 
     [HttpPost]
     public async Task<ActionResult<Result<string>>> Create(
         [FromBody] ReservationCreateRequest request)
     {
-        var result = await _reservationService.CreateAsync(request);
+        var result = await _service.CreateAsync(request);
         if (!result.IsSuccess)
         {
             return BadRequest(result);
@@ -31,13 +31,13 @@ public class ReservationsController : ControllerBase
 
         return Ok(result);
     }
- 
+
     [HttpGet]
     public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> Get(
         [FromQuery] string reservationCode, string email)
     {
-        var result = await _reservationService.GetByCodeAndMailAsync(
-            reservationCode: reservationCode, email: email);        
+        var result = await _service.GetByCodeAndMailAsync(
+            reservationCode: reservationCode, email: email);
         if (!result.IsSuccess)
         {
             return BadRequest(result);
@@ -54,15 +54,37 @@ public class ReservationsController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
         {
             return Unauthorized(new Result<IEnumerable<ReservationDto>>(
-                data: [], 
+                data: [],
                 errors: ["Email is missing"]));
         }
 
-        var result = await _reservationService.GetByUserAsync(email);
+        var result = await _service.GetByUserAsync(email);
         if (!result.IsSuccess)
         {
             return BadRequest(result);
         }
+
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPost("{id}/confirm-return")]
+    public async Task<ActionResult<Result>> ConfirmReturnByUser(string id)
+    {
+        var result = await _service.ConfirmReturnAsync(id);
+        if (!result.IsSuccess)
+        {
+            BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Staff")]
+    [HttpGet("pending-return")]
+    public async Task<IActionResult> GetActiveReservations()
+    {
+        var result = await _service.GetActiveReservations();
 
         return Ok(result);
     }

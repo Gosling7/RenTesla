@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RenTesla.API.Data;
 
@@ -11,9 +12,11 @@ using RenTesla.API.Data;
 namespace RenTesla.API.Migrations
 {
     [DbContext(typeof(RenTeslaDbContext))]
-    partial class RenTeslaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250504132336_AddReturnConfirmationFields")]
+    partial class AddReturnConfirmationFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

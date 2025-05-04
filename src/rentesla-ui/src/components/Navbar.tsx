@@ -3,7 +3,9 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, userRoles } = useAuth();
+
+    const isStaff = userRoles?.includes("Staff");
 
     const handleLogout = async () => {
         await logout();
@@ -28,6 +30,12 @@ const Navbar = () => {
                 {isAuthenticated && (
                     <Link to="/user" className="hover:underline text-white">
                         Account
+                    </Link>
+                )}
+
+                {isAuthenticated && isStaff && (
+                    <Link to="/staff" className="hover:underline text-white">
+                        Staff
                     </Link>
                 )}
 

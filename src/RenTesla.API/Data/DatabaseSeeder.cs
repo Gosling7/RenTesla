@@ -1,4 +1,5 @@
-﻿using RenTesla.API.Data.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using RenTesla.API.Data.Models;
 using RenTesla.API.Interfaces;
 
 namespace RenTesla.API.Data;
@@ -6,15 +7,33 @@ namespace RenTesla.API.Data;
 public class DatabaseSeeder : IDatabaseSeeder
 {
     private readonly RenTeslaDbContext _dbContext;
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly UserManager<IdentityUser> _userManager;
+    private const string StaffRoleName = "Staff";
 
-    public DatabaseSeeder(RenTeslaDbContext dbContext)
+    public DatabaseSeeder(RenTeslaDbContext dbContext, 
+        RoleManager<IdentityRole> roleManager, 
+        UserManager<IdentityUser> userManager)
     {
         _dbContext = dbContext;
+        _roleManager = roleManager;
+        _userManager = userManager;
     }
 
     public async Task Seed()
     {
         Console.WriteLine("Starting seeding database.");
+
+        await _roleManager.CreateAsync(new IdentityRole(StaffRoleName));
+        
+        var staffUser = new IdentityUser
+        {
+            UserName = "smithjohn@rentesla.com",
+            Email = "smithjohn@rentesla.com"
+        };
+
+        await _userManager.CreateAsync(user: staffUser, password: "Staff123!");
+        await _userManager.AddToRoleAsync(user: staffUser, role: StaffRoleName);
 
         var modelSId = Guid.NewGuid();
         var modelXId = Guid.NewGuid();

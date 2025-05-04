@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RenTesla.API.Data;
 using RenTesla.API.Data.DTOs;
+using RenTesla.API.Data.Models;
 using RenTesla.API.Data.Requests;
 using RenTesla.API.Interfaces;
 
@@ -36,8 +37,10 @@ public class CarModelService : ICarModelService
                 .Include(cm => cm.Cars)
                 .Where(cm => cm.Cars.Any(c =>
                     c.CurrentLocationId == request.PickUpLocationId
-                    && !c.Reservations.Any(r => 
-                        request.From < r.To && request.To > r.From)));
+                    && !c.Reservations.Any(r =>                        
+                        request.From < r.To 
+                        && request.To > r.From
+                        && r.Status != ReservationStatus.Completed)));
         }
 
         var carModels = await query

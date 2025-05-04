@@ -10,4 +10,6 @@ public interface IReservationService
     Task<Result<IEnumerable<ReservationDto>>> GetByCodeAndMailAsync(
         string reservationCode, string email);
     Task<Result<IEnumerable<ReservationDto>>> GetByUserAsync(string email);
+    Task<Result> ConfirmReturnAsync(string id);
+    Task<Result<IEnumerable<ReservationDto>>> GetActiveReservations();
 }

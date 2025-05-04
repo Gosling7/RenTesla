@@ -12,6 +12,7 @@ export interface ReservationDto {
     from: string;
     to: string;
     totalCost: number;
+    status: ReservationStatus;
     reservationCode: string;
 };
 
@@ -31,4 +32,16 @@ export interface CarModelDto {
     id: string;
     name: string;
     baseDailyRate: number;
+}
+
+export interface UserInfoDto {
+    email: string;
+    roles: string[];
+}
+
+export enum ReservationStatus {
+    Active,
+    PendingReturn,
+    Completed,
+    Cancelled
 }

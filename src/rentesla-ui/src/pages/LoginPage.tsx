@@ -3,9 +3,10 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router';
 import { AuthRequest } from '../types/ApiRequests';
+import { ApiResult, UserInfoDto } from '../types/ApiResults';
 
 const LoginPage = () => {
-  const { setAuthenticated, setUserEmail: setLoggedInUserEmail } = useAuth();
+  const { setAuthenticated, setUserEmail: setLoggedInUserEmail, setUserRoles } = useAuth();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [message, setMessage] = useState<string>('');
@@ -15,10 +16,12 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const request: AuthRequest = { email, password };
-      await axios.post('/api/auth/login', request);
+      const response = await axios.post<ApiResult<UserInfoDto>>('/api/auth/login', request);
 
       setAuthenticated(true);
-      setLoggedInUserEmail(email);
+      setLoggedInUserEmail(response.data.data.email);
+
+      setUserRoles(response.data.data.roles);
 
       navigate('/', { state: { loginSuccess: true } });
     } catch (error: any) {
