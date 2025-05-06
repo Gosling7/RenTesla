@@ -2,5 +2,5 @@
 
 public interface IDatabaseSeeder
 {
-    Task Seed();
+    Task EnsureDatabaseInitializedAsync();
 }

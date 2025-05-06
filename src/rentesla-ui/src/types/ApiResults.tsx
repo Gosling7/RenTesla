@@ -19,7 +19,7 @@ export interface ReservationDto {
 export interface AvailableModelDto {
     id: string;
     name: string;
-    dailyRate: number;
+    baseDailyRate: number;
     availableCount: number;
 };
 

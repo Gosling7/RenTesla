@@ -50,6 +50,17 @@ const ReservationForm = () => {
     }
   };
 
+  const getImageForModel = (name: string): string => {
+    const map: Record<string, string> = {
+      'Tesla Model S': '/images/tesla-model-s.jpg',
+      'Tesla Model 3': '/images/tesla-model-3.jpg',
+      'Tesla Model Y': '/images/tesla-model-y.jpg',
+      'Tesla Model X': '/images/tesla-model-x.jpg',
+      'Tesla Cybertruck': '/images/tesla-cybertruck.jpg',
+    };
+    return map[name];
+  };
+
   const inputClass = 'p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400';
   const labelClass = 'text-sm font-medium mb-1';
 
@@ -115,7 +126,7 @@ const ReservationForm = () => {
       </form>
 
       {/* Results */}
-      <div className="mt-6 text-white">
+      {/* <div className="mt-6 text-white">
         {availableModels.length > 0 ? (
           <ul className="space-y-4">
             {availableModels.map((model) => (
@@ -143,6 +154,55 @@ const ReservationForm = () => {
               </li>
             ))}
           </ul>
+        ) : (
+          <p className="text-sm text-gray-400">No models available (or not searched yet).</p>
+        )}
+      </div> */}
+
+      {/* Results */}
+      <div className="mt-6 text-white">
+        {availableModels.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {availableModels.map((model) => (
+              <div
+                key={model.id}
+                className="bg-gray-800 p-6 rounded-lg shadow-lg flex items-center justify-between "
+              >
+                {/* Image */}
+                <img
+                  src={getImageForModel(model.name)} // Get the image based on model name
+                  alt={model.name}
+                  className="w-40 h-40 object-cover rounded-lg"
+                />
+
+                {/* Model Info Container */}
+                <div className="flex-1 ml-4">
+                  <div className="font-semibold text-xl">{model.name}</div>
+                  <div className="mt-2">Daily Rate: €{model.baseDailyRate}</div>
+                  {/* Choose Button */}
+                  <div className="mt-4">
+                    <button
+                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg w-full sm:w-auto"
+                      onClick={() => {
+                        navigate('/reservations/create', {
+                          state: {
+                            selectedModel: model,
+                            pickupLocationId: pickUpLocationId,
+                            dropoffLocationId: dropOffLocationId,
+                            from,
+                            to,
+                            locations
+                          }
+                        });
+                      }}
+                    >
+                      Choose
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <p className="text-sm text-gray-400">No models available (or not searched yet).</p>
         )}

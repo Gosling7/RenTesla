@@ -56,14 +56,8 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<RenTeslaDbContext>();
-    await dbContext.Database.MigrateAsync();
-    // TODO: sprawdziæ Anu() wszystkie seedowane tabelki
-    if (!dbContext.CarModels.Any())
-    {
-        var databaseSeeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
-        await databaseSeeder.Seed();
-    }
+    var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+    await seeder.EnsureDatabaseInitializedAsync();
 }
 
 // Configure the HTTP request pipeline.
