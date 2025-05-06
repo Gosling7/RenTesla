@@ -48,15 +48,5 @@ public class RenTeslaDbContext : IdentityDbContext<IdentityUser>
                 .HasForeignKey(r => r.DropOffLocationId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-
-        //modelBuilder.Entity<CarModel>()
-        //    .HasMany(cm => cm.Cars)
-        //    .WithOne(c => c.Model)
-        //    .HasForeignKey(c => c.ModelId);
-
-        //modelBuilder.Entity<Location>()
-        //    .HasMany(cm => cm.Cars)
-        //    .WithOne(c => c.loca)
-        //    .HasForeignKey(c => c.ModelId);
     }
 }

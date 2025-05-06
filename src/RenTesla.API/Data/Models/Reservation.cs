@@ -28,6 +28,6 @@ public class Reservation
 
     public Reservation()
     {
-        ReservationCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+        ReservationCode = Guid.NewGuid().ToString().ToUpper();
     }
 }
