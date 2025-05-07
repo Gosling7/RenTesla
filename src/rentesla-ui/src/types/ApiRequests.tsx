@@ -10,4 +10,5 @@ export interface CreateReservationRequest {
     dropOffLocationId: string;
     from: string;
     to: string;
+    totalCost: number;
 }

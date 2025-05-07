@@ -41,15 +41,44 @@ public class CarModelService : ICarModelService
                         request.From < r.To 
                         && request.To > r.From
                         && r.Status != ReservationStatus.Completed)));
+
+            var availableCarModels = await query
+                .Select(cm => new CarModelDto(
+                    cm.Id.ToString(),
+                    cm.Name,
+                    cm.BaseDailyRate,
+                    CalculateRentalCost(request.From, request.To, cm.BaseDailyRate)))
+                .ToListAsync();
+
+            return new Result<IEnumerable<CarModelDto>>(data: availableCarModels, errors: errors);
         }
 
         var carModels = await query
             .Select(cm => new CarModelDto(
                 cm.Id.ToString(),
                 cm.Name,
-                cm.BaseDailyRate))
+                cm.BaseDailyRate,
+                0))
             .ToListAsync();
 
         return new Result<IEnumerable<CarModelDto>>(data: carModels, errors: errors);
+    }
+
+    private static decimal CalculateRentalCost(DateTime? from, DateTime? to, decimal dailyRate)
+    {
+        var hourlyRate = dailyRate / 10;
+        var totalHours = (decimal)(to - from)?.TotalHours!;
+
+        // Round up to the next full hour to ensure full hour billing
+        var billedHours = Math.Ceiling(totalHours);
+
+        // Determine full days and leftover hours
+        var fullDays = (int)(billedHours / 24);
+        var remainingHours = billedHours % 24;
+
+        // Cap the remaining hourly cost at the daily rate
+        var remainingCost = Math.Min(remainingHours * hourlyRate, dailyRate);
+
+        return (fullDays * dailyRate) + remainingCost;
     }
 }

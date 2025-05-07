@@ -16,11 +16,11 @@ export interface ReservationDto {
     reservationCode: string;
 };
 
-export interface AvailableModelDto {
+export interface CarModelDto {
     id: string;
     name: string;
     baseDailyRate: number;
-    availableCount: number;
+    totalCost: number;
 };
 
 export interface LocationDto {

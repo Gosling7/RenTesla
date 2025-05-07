@@ -27,10 +27,10 @@ public class ReservationService : IReservationService
     {
         List<string> errors = [];
         ValidateEmail(email, errors);
-        if (reservationCode.Length != 8)
-        {
-            errors.Add("Invalid reservation code format");
-        }
+        //if (reservationCode.Length != 8)
+        //{
+        //    errors.Add("Invalid reservation code format");
+        //}
         if (errors.Count != 0)
         {
             return new Result<IEnumerable<ReservationDto>>(data: [], errors: errors);
@@ -173,7 +173,8 @@ public class ReservationService : IReservationService
             DailyRate = availableCarModel!.BaseDailyRate,
             Car = availableCar,
             PickUpLocation = existingPickUpLocation,
-            DropOffLocation = existingDropOffLocation
+            DropOffLocation = existingDropOffLocation,
+            TotalCost = request.TotalCost
         };
 
         await _dbContext.Reservations.AddAsync(reservation);

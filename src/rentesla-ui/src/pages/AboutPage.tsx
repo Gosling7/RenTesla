@@ -50,6 +50,7 @@ const AboutPage = () => {
                     <div className="p-4">
                         <h3 className="text-xl font-semibold">{model.name}</h3>
                         <p className="text-gray-300 mt-1">€{model.baseDailyRate} / day</p>
+                        <p className="text-gray-300 mt-1">€{model.baseDailyRate / 10} / hour</p>
                     </div>
                 </div>
             ))}

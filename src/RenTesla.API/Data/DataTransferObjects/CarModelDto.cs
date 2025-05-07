@@ -3,4 +3,5 @@
 public record CarModelDto(
     string Id,
     string Name,
-    decimal BaseDailyRate);
+    decimal BaseDailyRate,
+    decimal? TotalCost);

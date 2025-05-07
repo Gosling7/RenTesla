@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { InputWithSuggestions } from './InputWithSuggestions';
 import { useNavigate } from 'react-router';
-import { ApiResult, AvailableModelDto, LocationDto } from '../types/ApiResults';
+import { ApiResult, CarModelDto, LocationDto } from '../types/ApiResults';
 
 const ReservationForm = () => {
   const [pickUpLocationId, setPickUpLocationId] = useState('');
@@ -11,7 +11,7 @@ const ReservationForm = () => {
   const [dropoffLocationName, setDropoffLocationName] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [availableModels, setAvailableModels] = useState<AvailableModelDto[]>([]);
+  const [availableModels, setAvailableModels] = useState<CarModelDto[]>([]);
   const [locations, setLocations] = useState<LocationDto[]>([]);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ const ReservationForm = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.get<ApiResult<AvailableModelDto[]>>('api/car-models', {
+      const response = await axios.get<ApiResult<CarModelDto[]>>('api/car-models', {
         params: {
           available: true,
           pickupLocationId: pickUpLocationId,
@@ -179,6 +179,7 @@ const ReservationForm = () => {
                 <div className="flex-1 ml-4">
                   <div className="font-semibold text-xl">{model.name}</div>
                   <div className="mt-2">Daily Rate: €{model.baseDailyRate}</div>
+                  <div className="mt-2">Total Cost: €{model.totalCost}</div>
                   {/* Choose Button */}
                   <div className="mt-4">
                     <button

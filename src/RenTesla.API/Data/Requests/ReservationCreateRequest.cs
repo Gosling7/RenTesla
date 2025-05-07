@@ -6,4 +6,5 @@ public record ReservationCreateRequest(
     string PickUpLocationId,
     string DropOffLocationId,
     string From,
-    string To);
+    string To,
+    decimal TotalCost);

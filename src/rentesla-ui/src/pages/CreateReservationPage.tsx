@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { ApiResult, AvailableModelDto, LocationDto } from '../types/ApiResults';
+import { ApiResult, CarModelDto, LocationDto } from '../types/ApiResults';
 import { CreateReservationRequest } from '../types/ApiRequests';
 
 const CreateReservationPage = () => {
@@ -16,19 +16,19 @@ const CreateReservationPage = () => {
     to, 
     locations = []
   }: {
-      selectedModel: AvailableModelDto;
+      selectedModel: CarModelDto;
       pickupLocationId: string;
       dropoffLocationId: string;
       from: string;
       to: string;
-      locations: LocationDto[]
+      locations: LocationDto[];
   } = state || {};
 
   const [reservationCode, setReservationCode] = useState<string | null>(null);
   const [email, setEmail] = useState<string>('');
   const [createAccount, setCreateAccount] = useState<boolean>(false);
   const [password, setPassword] = useState<string>('');
-  const { setAuthenticated, isAuthenticated, email: loggedInUserEmail } = useAuth();
+  const { setAuthenticated, isAuthenticated, email: loggedInUserEmail, setUserEmail } = useAuth();
 
   if (!selectedModel) {
     return (
@@ -56,6 +56,7 @@ const CreateReservationPage = () => {
         dropOffLocationId: dropoffLocationId,
         from: from,
         to: to,
+        totalCost: selectedModel.totalCost
       };
 
       // 1. Make reservation
@@ -70,11 +71,12 @@ const CreateReservationPage = () => {
           password,
         });
 
-        await axios.post('/api/auth/login', {
+        const response = await axios.post('/api/auth/login', {
           email,
           password,
         });
         setAuthenticated(true);
+        setUserEmail(response.data.data.email);
       }
     } catch (error) {
       console.error('Error creating reservation:', error);
@@ -89,8 +91,7 @@ const CreateReservationPage = () => {
         <div className="bg-gray-700 rounded-lg p-4">
           <h2 className="text-xl font-semibold mb-2">Car Model</h2>
           <p>{selectedModel.name}</p>
-          <p className="text-sm text-gray-300">Daily Rate: €{selectedModel.dailyRate}</p>
-          <p className="text-sm text-gray-300">Available: {selectedModel.availableCount}</p>
+          <p className="text-sm text-gray-300">Daily Rate: €{selectedModel.baseDailyRate}</p>
         </div>
 
         <div className="bg-gray-700 rounded-lg p-4">
@@ -103,6 +104,10 @@ const CreateReservationPage = () => {
           <h2 className="text-xl font-semibold mb-2">Date & Time</h2>
           <p>From: {new Date(from).toLocaleString()}</p>
           <p>To: {new Date(to).toLocaleString()}</p>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-4 col-span-1 sm:col-span-2">
+          <p className="text-xl font-semibold mb-2">Total Cost: €{selectedModel.totalCost}</p>
         </div>
 
       </div>

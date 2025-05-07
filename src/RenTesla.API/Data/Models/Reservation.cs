@@ -9,7 +9,7 @@ public class Reservation
     public ReservationStatus Status { get; set; }
     public DateTime? ReturnConfirmedDate { get; set; }
 
-    public string ReservationCode { get; set; }
+    public string ReservationCode { get; set; } = Guid.NewGuid().ToString().ToUpper();
     public string Email { get; set; }
 
     public Guid CarId { get; set; }
@@ -20,14 +20,10 @@ public class Reservation
     public DateTime To { get; set; }
 
     public decimal DailyRate { get; set; }
-    public decimal TotalCost => (decimal)(To.Date - From.Date).TotalDays * DailyRate;
+    //public decimal TotalCost => (decimal)(To.Date - From.Date).TotalDays * DailyRate;
+    public decimal TotalCost { get; set; }
 
     public Car Car { get; set; } = null!;
     public Location PickUpLocation { get; set; } = null!;
     public Location DropOffLocation { get; set; } = null!;
-
-    public Reservation()
-    {
-        ReservationCode = Guid.NewGuid().ToString().ToUpper();
-    }
 }
