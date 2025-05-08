@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace RenTesla.API.Data;
+﻿namespace RenTesla.API.Data;
 
 public record ResultOld<TDataType>
 {
@@ -20,20 +18,30 @@ public record Result<TDataType>
     public bool IsSuccess => Errors.Count == 0;
     public TDataType? Data { get; init; }
     public Dictionary<string, List<string>> Errors { get; init; } = [];
+    public ErrorType? ErrorType { get; init; }
 
-    public Result(TDataType data, Dictionary<string, List<string>> errors)
+    public Result(TDataType data, Dictionary<string, List<string>> errors, ErrorType? errorType)
     {
         Data = data;
         Errors = errors;
+        ErrorType = errorType;
     }
 }
 
 public record Result
 {
     public bool IsSuccess => Errors.Count == 0;
-    public IReadOnlyCollection<string> Errors { get; init; } = [];
-    public Result(IReadOnlyCollection<string> errors)
+    public Dictionary<string, List<string>> Errors { get; init; } = [];
+    public ErrorType? ErrorType { get; init; }
+    public Result(Dictionary<string, List<string>> errors, ErrorType? errorType)
     {
         Errors = errors;
+        ErrorType = errorType;
     }
+}
+
+public enum ErrorType
+{
+    Validation,
+    NotFound
 }

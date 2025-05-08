@@ -37,13 +37,15 @@ public class ReservationsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<ResultOld<IEnumerable<ReservationDto>>>> Get(
-        [FromQuery] string reservationCode, string email)
+        [FromQuery] ReservationByCodeQueryRequest request)
     {
-        var result = await _service.GetByCodeAndMailAsync(
-            reservationCode: reservationCode, email: email);
+        var result = await _service.GetByCodeAndMailAsync(request);
         if (!result.IsSuccess)
         {
-            return BadRequest(result);
+            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+                HttpContext, result.Errors);
+
+            return BadRequest(problemDetails);
         }
 
         return Ok(result);
@@ -51,9 +53,10 @@ public class ReservationsController : ControllerBase
 
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<ResultOld<IEnumerable<ReservationDto>>>> GetByUser()
+    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> GetByUser()
     {
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        // TODO: cos z tym zrobic
         if (string.IsNullOrWhiteSpace(email))
         {
             return Unauthorized(new ResultOld<IEnumerable<ReservationDto>>(
@@ -64,7 +67,10 @@ public class ReservationsController : ControllerBase
         var result = await _service.GetByUserAsync(email);
         if (!result.IsSuccess)
         {
-            return BadRequest(result);
+            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+                HttpContext, result.Errors);
+
+            return BadRequest(problemDetails);
         }
 
         return Ok(result);
@@ -72,12 +78,23 @@ public class ReservationsController : ControllerBase
 
     [Authorize]
     [HttpPost("{id}/confirm-return")]
-    public async Task<ActionResult<Result>> ConfirmReturnByUser(string id)
+    public async Task<ActionResult<Result<string>>> ConfirmReturnByUser(string id)
     {
-        var result = await _service.ConfirmReturnAsync(id);
+        var result = await _service.ConfirmReturnAsync(id, HttpContext);
+        if (result.ErrorType == ErrorType.NotFound)
+        {
+            var problemDetails = ProblemDetailsHelper.CreateNotFoundProblemDetails(
+                HttpContext, "Reservation not found.");
+
+            return NotFound(problemDetails);
+        }
+
         if (!result.IsSuccess)
         {
-            BadRequest(result);
+            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+                HttpContext, result.Errors);
+
+            return BadRequest(problemDetails);
         }
 
         return Ok(result);

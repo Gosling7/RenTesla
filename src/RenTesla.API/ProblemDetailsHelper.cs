@@ -27,4 +27,25 @@ public static class ProblemDetailsHelper
 
         return problemDetails;
     }
+
+    public static ProblemDetails CreateNotFoundProblemDetails(
+        HttpContext httpContext,
+        string detail,
+        string title = "Resource not found.",
+        string type = "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+        int statusCode = StatusCodes.Status404NotFound)
+    {
+        var problemDetails = new ProblemDetails()
+        {
+            Type = type,
+            Title = title,
+            Status = statusCode,
+            Instance = $"{httpContext.Request.Method} {httpContext.Request.Path}",
+            Detail = detail
+        };
+
+        problemDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
+
+        return problemDetails;
+    }
 }
