@@ -18,9 +18,18 @@ public class CarModelsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ResultOld<IEnumerable<CarModelDto>>>> GetAsync(
+    public async Task<ActionResult<Result<IEnumerable<CarModelDto>>>> GetAsync(
         [FromQuery] CarModelQueryRequest query)
     {
-        return Ok(await _service.GetAsync(query));
+        var result = await _service.GetAsync(query);
+        if (result.IsErrorValidation)
+        {
+            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+                HttpContext, result.Errors);
+
+            return BadRequest(problemDetails);
+        }
+
+        return Ok(result);
     }
 }

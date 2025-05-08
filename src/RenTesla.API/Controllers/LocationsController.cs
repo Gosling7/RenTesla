@@ -17,7 +17,7 @@ public class LocationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ResultOld<IEnumerable<LocationDto>>>> GetLocations()
+    public async Task<ActionResult<Result<IEnumerable<LocationDto>>>> GetLocations()
     {
         return Ok(await _locationService.GetLocationsAsync());
     }

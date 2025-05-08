@@ -6,5 +6,5 @@ namespace RenTesla.API.Interfaces;
 
 public interface ICarModelService
 {
-    Task<ResultOld<IEnumerable<CarModelDto>>> GetAsync(CarModelQueryRequest query);
+    Task<Result<IEnumerable<CarModelDto>>> GetAsync(CarModelQueryRequest query);
 }

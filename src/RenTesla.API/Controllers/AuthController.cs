@@ -43,7 +43,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<ResultOld<UserInfoDto>>> Login(
+    public async Task<ActionResult<Result<UserInfoDto>>> Login(
         [FromBody] LoginRequest parameter)
     {
         var result = await _signInManager.PasswordSignInAsync(
@@ -59,7 +59,7 @@ public class AuthController : ControllerBase
         var user = await _userManager.GetUserAsync(User);
         var roles = await _userManager.GetRolesAsync(user);
 
-        return Ok(new ResultOld<UserInfoDto>(
+        return Ok(new Result<UserInfoDto>(
             data: new UserInfoDto(Email: user.Email, Roles: roles),
             errors: []));
     }
@@ -72,17 +72,17 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("me")]
-    public async Task<ActionResult<ResultOld<UserInfoDto>>> Me()
+    public async Task<ActionResult<Result<UserInfoDto>>> Me()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
-            return Unauthorized(new ResultOld<UserInfoDto>(data: null, errors: []));
+            return Unauthorized(new Result<UserInfoDto>(data: null, errors: []));
         }
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        return Ok(new ResultOld<UserInfoDto>(
+        return Ok(new Result<UserInfoDto>(
             data: new UserInfoDto(Email: user.Email, Roles: roles),
             errors: []));
     }

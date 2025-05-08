@@ -20,11 +20,11 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ResultOld<string>>> Create(
+    public async Task<ActionResult<Result<string>>> Create(
         [FromBody] ReservationCreateRequest request)
     {
         var result = await _service.CreateAsync(request);
-        if (!result.IsSuccess)
+        if (result.IsErrorValidation)
         {
             var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
                 HttpContext, result.Errors);
@@ -36,11 +36,11 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ResultOld<IEnumerable<ReservationDto>>>> Get(
+    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> Get(
         [FromQuery] ReservationByCodeQueryRequest request)
     {
         var result = await _service.GetByCodeAndMailAsync(request);
-        if (!result.IsSuccess)
+        if (result.IsErrorValidation)
         {
             var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
                 HttpContext, result.Errors);
@@ -56,16 +56,8 @@ public class ReservationsController : ControllerBase
     public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> GetByUser()
     {
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
-        // TODO: cos z tym zrobic
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            return Unauthorized(new ResultOld<IEnumerable<ReservationDto>>(
-                data: [],
-                errors: ["Email is missing"]));
-        }
-
         var result = await _service.GetByUserAsync(email);
-        if (!result.IsSuccess)
+        if (result.IsErrorValidation)
         {
             var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
                 HttpContext, result.Errors);
@@ -81,15 +73,14 @@ public class ReservationsController : ControllerBase
     public async Task<ActionResult<Result<string>>> ConfirmReturnByUser(string id)
     {
         var result = await _service.ConfirmReturnAsync(id, HttpContext);
-        if (result.ErrorType == ErrorType.NotFound)
+        if (result.IsErrorNotFound)
         {
             var problemDetails = ProblemDetailsHelper.CreateNotFoundProblemDetails(
                 HttpContext, "Reservation not found.");
 
             return NotFound(problemDetails);
         }
-
-        if (!result.IsSuccess)
+        if (result.IsErrorValidation)
         {
             var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
                 HttpContext, result.Errors);

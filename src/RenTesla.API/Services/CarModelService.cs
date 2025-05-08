@@ -16,21 +16,37 @@ public class CarModelService : ICarModelService
         _dbContext = dbContext;
     }
 
-    public async Task<ResultOld<IEnumerable<CarModelDto>>> GetAsync(CarModelQueryRequest request)
+    public async Task<Result<IEnumerable<CarModelDto>>> GetAsync(CarModelQueryRequest request)
     {
-        List<string> errors = [];
-
         var query = _dbContext.CarModels.AsQueryable();
 
         if (request.Available == true)
         {
-            if (!request.PickUpLocationId.HasValue
-                || !request.From.HasValue
-                || !request.To.HasValue)
+            Dictionary<string, List<string>> errors = [];
+
+            if (!request.PickUpLocationId.HasValue)
             {
-                return new ResultOld<IEnumerable<CarModelDto>>(
-                    data: [], 
-                    errors: ["PickUpLocationId, From and To must be provided when Available=true"]);
+                errors.Add(
+                    key: $"{nameof(ReservationCreateRequest.PickUpLocationId)}",
+                    value: ["'PickUpLocationId' must be provided when Available=true."]);
+            }
+            if (!request.From.HasValue)
+            {
+                errors.Add(
+                    key: $"{nameof(ReservationCreateRequest.From)}",
+                    value: ["'From' must be provided when Available=true."]);
+            }
+            if (!request.To.HasValue)
+            {
+                errors.Add(
+                    key: $"{nameof(ReservationCreateRequest.To)}",
+                    value: ["'To' must be provided when Available=true."]);
+            }
+
+            if (errors.Count > 0)
+            {
+                return new Result<IEnumerable<CarModelDto>>(data: [], errors: errors, 
+                    errorType: ErrorType.Validation);
             }
 
             query = query
@@ -50,7 +66,7 @@ public class CarModelService : ICarModelService
                     CalculateRentalCost(request.From, request.To, cm.BaseDailyRate)))
                 .ToListAsync();
 
-            return new ResultOld<IEnumerable<CarModelDto>>(data: availableCarModels, errors: errors);
+            return new Result<IEnumerable<CarModelDto>>(data: availableCarModels, errors: []);
         }
 
         var carModels = await query
@@ -61,7 +77,7 @@ public class CarModelService : ICarModelService
                 0))
             .ToListAsync();
 
-        return new ResultOld<IEnumerable<CarModelDto>>(data: carModels, errors: errors);
+        return new Result<IEnumerable<CarModelDto>>(data: carModels, errors: []);
     }
 
     private static decimal CalculateRentalCost(DateTime? from, DateTime? to, decimal dailyRate)

@@ -5,7 +5,6 @@ using RenTesla.API.Data.DTOs;
 using RenTesla.API.Data.Models;
 using RenTesla.API.Data.Requests;
 using RenTesla.API.Interfaces;
-using System.ComponentModel.DataAnnotations;
 
 namespace RenTesla.API.Services;
 
@@ -113,7 +112,7 @@ public class ReservationService : IReservationService
         if (!validationResult.IsValid)
         {
             var errors = ConvertToDictionary(validationResult);
-            return new Result<string>(data: string.Empty, errors: errors, 
+            return new Result<string>(data: string.Empty, errors: errors,
                 errorType: ErrorType.Validation);
         }
 
@@ -170,7 +169,7 @@ public class ReservationService : IReservationService
 
         if (validationErrors.Count > 0)
         {
-            return new Result<string>(data: string.Empty, errors: validationErrors, 
+            return new Result<string>(data: string.Empty, errors: validationErrors,
                 errorType: ErrorType.Validation);
         }
 
@@ -196,29 +195,8 @@ public class ReservationService : IReservationService
         return new Result<string>(data: reservation.ReservationCode, errors: [], errorType: null);
     }
 
-    private static Dictionary<string, List<string>> ConvertToDictionary(
-        FluentValidation.Results.ValidationResult validationResult)
-    {
-        return validationResult.Errors
-            .GroupBy(e => e.PropertyName)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Select(e => e.ErrorMessage).ToList());
-    }
-
     public async Task<Result> ConfirmReturnAsync(string id, HttpContext httpContext)
     {
-        List<string> errorsOld = [];
-
-        var user = httpContext.User;
-        if (user is null)
-        {
-
-        }
-
-        var isStaffRole = user.IsInRole("Staff");
-        var email = user.Identity?.Name;
-
         var reservationId = Guid.Parse(id);
 
         var reservation = await _dbContext.Reservations.FindAsync(reservationId);
@@ -232,6 +210,7 @@ public class ReservationService : IReservationService
             return new Result(errors: errors, errorType: ErrorType.NotFound);
         }
 
+        var isStaffRole = httpContext.User.IsInRole("Staff");
         if (isStaffRole)
         {
             if (reservation.StaffConfirmedReturn)
@@ -240,7 +219,6 @@ public class ReservationService : IReservationService
                 {
                     { nameof(id), new List<string> { "Return already confirmed by staff." } }
                 };
-
                 return new Result(errors: errors, errorType: ErrorType.Validation);
             }
 
@@ -254,7 +232,6 @@ public class ReservationService : IReservationService
                 {
                     { nameof(id), new List<string> { "Return already confirmed by user." } }
                 };
-
                 return new Result(errors: errors, errorType: ErrorType.Validation);
             }
             reservation.UserConfirmedReturn = true;
@@ -263,6 +240,15 @@ public class ReservationService : IReservationService
         if (reservation.StaffConfirmedReturn && reservation.UserConfirmedReturn)
         {
             var reservedCar = await _dbContext.Cars.FindAsync(reservation.CarId);
+            if (reservedCar is null)
+            {
+                var errors = new Dictionary<string, List<string>>
+                {
+                    { nameof(id), new List<string> { "Car from reservation not found." } }
+                };
+                return new Result(errors: errors, errorType: ErrorType.Validation);
+            }
+
             reservedCar.CurrentLocation = reservation.DropOffLocation;
             reservedCar.CurrentLocationId = reservation.DropOffLocationId;
             reservation.Status = ReservationStatus.Completed;
@@ -297,5 +283,15 @@ public class ReservationService : IReservationService
             .ToListAsync();
 
         return new Result<IEnumerable<ReservationDto>>(data: reservations, errors: [], errorType: null);
+    }
+
+    private static Dictionary<string, List<string>> ConvertToDictionary(
+        FluentValidation.Results.ValidationResult validationResult)
+    {
+        return validationResult.Errors
+            .GroupBy(e => e.PropertyName)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(e => e.ErrorMessage).ToList());
     }
 }
