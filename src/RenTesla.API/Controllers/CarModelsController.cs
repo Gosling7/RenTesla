@@ -18,7 +18,7 @@ public class CarModelsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<IEnumerable<CarModelDto>>>> GetAsync(
+    public async Task<ActionResult<ResultOld<IEnumerable<CarModelDto>>>> GetAsync(
         [FromQuery] CarModelQueryRequest query)
     {
         return Ok(await _service.GetAsync(query));

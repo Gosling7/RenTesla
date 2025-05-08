@@ -16,7 +16,7 @@ public class CarModelService : ICarModelService
         _dbContext = dbContext;
     }
 
-    public async Task<Result<IEnumerable<CarModelDto>>> GetAsync(CarModelQueryRequest request)
+    public async Task<ResultOld<IEnumerable<CarModelDto>>> GetAsync(CarModelQueryRequest request)
     {
         List<string> errors = [];
 
@@ -28,7 +28,7 @@ public class CarModelService : ICarModelService
                 || !request.From.HasValue
                 || !request.To.HasValue)
             {
-                return new Result<IEnumerable<CarModelDto>>(
+                return new ResultOld<IEnumerable<CarModelDto>>(
                     data: [], 
                     errors: ["PickUpLocationId, From and To must be provided when Available=true"]);
             }
@@ -50,7 +50,7 @@ public class CarModelService : ICarModelService
                     CalculateRentalCost(request.From, request.To, cm.BaseDailyRate)))
                 .ToListAsync();
 
-            return new Result<IEnumerable<CarModelDto>>(data: availableCarModels, errors: errors);
+            return new ResultOld<IEnumerable<CarModelDto>>(data: availableCarModels, errors: errors);
         }
 
         var carModels = await query
@@ -61,7 +61,7 @@ public class CarModelService : ICarModelService
                 0))
             .ToListAsync();
 
-        return new Result<IEnumerable<CarModelDto>>(data: carModels, errors: errors);
+        return new ResultOld<IEnumerable<CarModelDto>>(data: carModels, errors: errors);
     }
 
     private static decimal CalculateRentalCost(DateTime? from, DateTime? to, decimal dailyRate)

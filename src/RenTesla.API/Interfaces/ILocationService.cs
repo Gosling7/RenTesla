@@ -5,5 +5,5 @@ namespace RenTesla.API.Interfaces;
 
 public interface ILocationService
 {
-    Task<Result<IEnumerable<LocationDto>>> GetLocationsAsync();
+    Task<ResultOld<IEnumerable<LocationDto>>> GetLocationsAsync();
 }

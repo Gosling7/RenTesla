@@ -2,9 +2,9 @@
 
 public record ReservationCreateRequest(
     string Email,
-    string CarModelId,
-    string PickUpLocationId,
-    string DropOffLocationId,
-    string From,
-    string To,
+    Guid CarModelId,
+    Guid PickUpLocationId,
+    Guid DropOffLocationId,
+    DateTime From,
+    DateTime To,
     decimal TotalCost);

@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RenTesla.API.Data;
@@ -8,7 +9,20 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+    //.ConfigureApiBehaviorOptions(options =>
+    //{
+    //    options.InvalidModelStateResponseFactory = context =>
+    //    {
+    //        var errors = context.ModelState
+    //            .Where(kvp => kvp.Value.Errors.Any())
+    //            .SelectMany(kvp => kvp.Value.Errors
+    //                .Select(error =>)
+    //    }
+    //})
+
 builder.Services.AddOpenApi();
+
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddDbContext<RenTeslaDbContext>(optionsBuilder =>
 {

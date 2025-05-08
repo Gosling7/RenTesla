@@ -7,9 +7,9 @@ namespace RenTesla.API.Interfaces;
 public interface IReservationService
 {
     Task<Result<string>> CreateAsync(ReservationCreateRequest parameters);
-    Task<Result<IEnumerable<ReservationDto>>> GetByCodeAndMailAsync(
+    Task<ResultOld<IEnumerable<ReservationDto>>> GetByCodeAndMailAsync(
         string reservationCode, string email);
-    Task<Result<IEnumerable<ReservationDto>>> GetByUserAsync(string email);
+    Task<ResultOld<IEnumerable<ReservationDto>>> GetByUserAsync(string email);
     Task<Result> ConfirmReturnAsync(string id);
-    Task<Result<IEnumerable<ReservationDto>>> GetActiveReservations();
+    Task<ResultOld<IEnumerable<ReservationDto>>> GetActiveReservations();
 }
