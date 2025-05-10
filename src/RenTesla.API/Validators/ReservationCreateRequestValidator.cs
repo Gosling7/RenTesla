@@ -1,34 +1,81 @@
-﻿using FluentValidation;
+﻿using RenTesla.API.Data;
 using RenTesla.API.Data.Requests;
+using RenTesla.API.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace RenTesla.API.Validators;
 
-public class ReservationCreateRequestValidator : AbstractValidator<ReservationCreateRequest>
+public class ReservationCreateRequestValidator : IReservationCreateRequestValidator
 {
-    private const string From = nameof(ReservationCreateRequest.From);
-    private const string To = nameof(ReservationCreateRequest.To);
-
-    public ReservationCreateRequestValidator()
+    public List<Error> Validate(ReservationCreateRequest request)
     {
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress();
+        EmailAddressAttribute _emailValidator = new();
+        List<Error> errors = [];
 
-        RuleFor(x => x.PickUpLocationId)
-            .NotEmpty();
+        if (string.IsNullOrWhiteSpace(request.Email)
+            || !_emailValidator.IsValid(request.Email))
+        {
+            errors.Add(new Error(
+                property: nameof(request.Email),
+                message: $"Must be a valid email address",
+                type: SimpleErrorType.Validation));
+        }
 
-        RuleFor(x => x.DropOffLocationId)
-            .NotEmpty();
+        var nameOfTotalCost = nameof(request.TotalCost);
+        if (request.TotalCost <= 0)
+        {
+            errors.Add(new Error(
+                property: nameOfTotalCost,
+                message: $"Must be greater than 0",
+                type: SimpleErrorType.Validation));
+        }
 
-        RuleFor(x => x.CarModelId)
-            .NotEmpty();
+        var nameOfFrom = nameof(request.From);
+        var nameOfTo = nameof(request.To);
+        if (request.From < DateTime.UtcNow)
+        {
+            errors.Add(new Error(
+                property: nameOfFrom,
+                message: $"Must be in the future",
+                type: SimpleErrorType.Validation));
+        }
+        if (request.To < DateTime.UtcNow)
+        {
+            errors.Add(new Error(
+                property: nameOfTo,
+                message: $"Must be in the future",
+                type: SimpleErrorType.Validation));
+        }
+        if (request.From > request.To)
+        {
+            errors.Add(new Error(
+                property: nameOfFrom,
+                message: $"Must be greater than '{nameOfTo}'",
+                type: SimpleErrorType.Validation));
+        }
 
-        RuleFor(x => x.From)
-            .LessThan(x => x.To).WithMessage($"'{From}' must be less than '{To}'.")
-            .GreaterThan(DateTime.UtcNow).WithMessage($"'{From}' must be in the future.");
+        if (request.CarModelId == Guid.Empty)
+        {
+            errors.Add(new Error(
+                property: nameof(request.CarModelId),
+                message: $"Must be provided",
+                type: SimpleErrorType.Validation));
+        }
+        if (request.PickUpLocationId == Guid.Empty)
+        {
+            errors.Add(new Error(
+                property: nameof(request.PickUpLocationId),
+                message: $"Must be provided",
+                type: SimpleErrorType.Validation));
+        }
+        if (request.DropOffLocationId == Guid.Empty)
+        {
+            errors.Add(new Error(
+                property: nameof(request.DropOffLocationId),
+                message: $"Must be provided",
+                type: SimpleErrorType.Validation));
+        }
 
-        RuleFor(x => x.To)
-            .GreaterThan(x => x.From).WithMessage($"'{To}' must be greater than '{From}'.")
-            .GreaterThan(DateTime.UtcNow).WithMessage($"'{To}' must be in the future.");
+        return errors;
     }
 }

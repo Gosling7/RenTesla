@@ -16,45 +16,40 @@ public class CarModelService : ICarModelService
         _dbContext = dbContext;
     }
 
-    public async Task<Result<IEnumerable<CarModelDto>>> GetAsync(CarModelQueryRequest request)
+    public async Task<Result<IEnumerable<CarModelDto>>> GetAsync(
+        CarModelQueryRequest request)
     {
         var query = _dbContext.CarModels.AsQueryable();
 
         if (request.Available == true)
         {
-            Dictionary<string, List<string>> errors = [];
+            List<Error> errors = [];
 
-            if (!request.PickUpLocationId.HasValue)
-            {
-                errors.Add(
-                    key: $"{nameof(ReservationCreateRequest.PickUpLocationId)}",
-                    value: ["'PickUpLocationId' must be provided when Available=true."]);
-            }
-            if (!request.From.HasValue)
-            {
-                errors.Add(
-                    key: $"{nameof(ReservationCreateRequest.From)}",
-                    value: ["'From' must be provided when Available=true."]);
-            }
-            if (!request.To.HasValue)
-            {
-                errors.Add(
-                    key: $"{nameof(ReservationCreateRequest.To)}",
-                    value: ["'To' must be provided when Available=true."]);
-            }
+            ValidateRequestParameters(request, errors);
 
             if (errors.Count > 0)
             {
-                return new Result<IEnumerable<CarModelDto>>(data: [], errors: errors, 
-                    errorType: ErrorType.Validation);
+                return Result<IEnumerable<CarModelDto>>.Failure(errors);
+            }
+
+            var locationExists = await _dbContext.Locations
+                .AnyAsync(l => l.Id == request.PickUpLocationId);
+            if (!locationExists)
+            {
+                errors.Add(new Error(
+                    property: nameof(request.PickUpLocationId),
+                    message: "No pickup location found with the given ID.",
+                    type: SimpleErrorType.Validation));
+
+                return Result<IEnumerable<CarModelDto>>.Failure(errors);
             }
 
             query = query
                 .Include(cm => cm.Cars)
                 .Where(cm => cm.Cars.Any(c =>
                     c.CurrentLocationId == request.PickUpLocationId
-                    && !c.Reservations.Any(r =>                        
-                        request.From < r.To 
+                    && !c.Reservations.Any(r =>
+                        request.From < r.To
                         && request.To > r.From
                         && r.Status != ReservationStatus.Completed)));
 
@@ -66,10 +61,10 @@ public class CarModelService : ICarModelService
                     CalculateRentalCost(request.From, request.To, cm.BaseDailyRate)))
                 .ToListAsync();
 
-            return new Result<IEnumerable<CarModelDto>>(data: availableCarModels, errors: []);
+            return Result<IEnumerable<CarModelDto>>.Success(availableCarModels);
         }
 
-        var carModels = await query
+        var allCarModels = await query
             .Select(cm => new CarModelDto(
                 cm.Id.ToString(),
                 cm.Name,
@@ -77,7 +72,33 @@ public class CarModelService : ICarModelService
                 0))
             .ToListAsync();
 
-        return new Result<IEnumerable<CarModelDto>>(data: carModels, errors: []);
+        return Result<IEnumerable<CarModelDto>>.Success(allCarModels);
+    }
+
+    private static void ValidateRequestParameters(CarModelQueryRequest request, 
+        List<Error> errors)
+    {
+        if (!request.PickUpLocationId.HasValue)
+        {
+            errors.Add(new Error(
+                property: nameof(request.PickUpLocationId),
+                message: "'PickUpLocationId' must be provided when Available=true.",
+                type: SimpleErrorType.Validation));
+        }
+        if (!request.From.HasValue)
+        {
+            errors.Add(new Error(
+                property: nameof(request.From),
+                message: "'From' must be provided when Available=true.",
+                type: SimpleErrorType.Validation));
+        }
+        if (!request.To.HasValue)
+        {
+            errors.Add(new Error(
+                property: nameof(request.To),
+                message: "'To' must be provided when Available=true.",
+                type: SimpleErrorType.Validation));
+        }
     }
 
     private static decimal CalculateRentalCost(DateTime? from, DateTime? to, decimal dailyRate)

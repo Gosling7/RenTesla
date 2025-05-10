@@ -9,16 +9,19 @@ namespace RenTesla.API.Controllers;
 [Route("api/[controller]")]
 public class LocationsController : ControllerBase
 {
-    private readonly ILocationService _locationService;
+    private readonly ILocationService _service;
 
     public LocationsController(ILocationService locationService)
     {
-        _locationService = locationService;
+        _service = locationService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<IEnumerable<LocationDto>>>> GetLocations()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<LocationDto>>> GetLocations()
     {
-        return Ok(await _locationService.GetLocationsAsync());
+        var locations = await _service.GetLocationsAsync();
+
+        return Ok(locations);
     }
 }

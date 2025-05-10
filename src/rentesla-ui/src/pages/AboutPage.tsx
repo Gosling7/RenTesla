@@ -20,8 +20,8 @@ const AboutPage = () => {
     useEffect(() => {
       const fetchCarModels = async () => {
         try {
-          const response = await axios.get<ApiResult<CarModelDto[]>>('/api/car-models');
-          setCarModels(response.data.data);
+          const response = await axios.get<CarModelDto[]>('/api/car-models');
+          setCarModels(response.data);
         } catch (err: any) {
           setError('Failed to load car models.');
         }

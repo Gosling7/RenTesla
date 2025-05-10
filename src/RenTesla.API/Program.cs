@@ -4,21 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using RenTesla.API.Data;
 using RenTesla.API.Interfaces;
 using RenTesla.API.Services;
+using RenTesla.API.Validators;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-    //.ConfigureApiBehaviorOptions(options =>
-    //{
-    //    options.InvalidModelStateResponseFactory = context =>
-    //    {
-    //        var errors = context.ModelState
-    //            .Where(kvp => kvp.Value.Errors.Any())
-    //            .SelectMany(kvp => kvp.Value.Errors
-    //                .Select(error =>)
-    //    }
-    //})
 
 builder.Services.AddOpenApi();
 
@@ -51,7 +42,13 @@ builder.Services
     .AddScoped<ILocationService, LocationService>()
     .AddScoped<ICarModelService, CarModelService>()
     .AddScoped<IReservationService, ReservationService>()
-    .AddScoped<IDatabaseSeeder, DatabaseSeeder>();
+    .AddScoped<IAuthService, AuthService>()
+
+    .AddScoped<IDatabaseSeeder, DatabaseSeeder>()
+
+    .AddScoped<IReservationCreateRequestValidator, ReservationCreateRequestValidator>()
+    .AddScoped<IReservationByCodeQueryRequestValidator, ReservationByCodeQueryRequestValidator>()
+    .AddScoped<IAuthRequestValidator, AuthRequestValidator>();
 
 const string CorsOrigin = "MyCorsOrigin";
 builder.Services.AddCors(options =>

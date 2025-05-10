@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RenTesla.API.Data;
 using RenTesla.API.Data.DTOs;
 using RenTesla.API.Data.Requests;
+using RenTesla.API.Helpers;
 using RenTesla.API.Interfaces;
 using System.Security.Claims;
 
@@ -20,83 +20,97 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Result<string>>> Create(
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<string>> Create(
         [FromBody] ReservationCreateRequest request)
     {
         var result = await _service.CreateAsync(request);
-        if (result.IsErrorValidation)
+        if (result.IsValidationError)
         {
-            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+            var problemDetails = ProblemDetailsHelper.SimpleCreateValidationProblemDetails(
                 HttpContext, result.Errors);
 
             return BadRequest(problemDetails);
         }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> Get(
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ReservationDto>> GetByReservationCode(
         [FromQuery] ReservationByCodeQueryRequest request)
     {
         var result = await _service.GetByCodeAndMailAsync(request);
-        if (result.IsErrorValidation)
+        if (result.IsValidationError)
         {
-            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+            var problemDetails = ProblemDetailsHelper.SimpleCreateValidationProblemDetails(
                 HttpContext, result.Errors);
 
             return BadRequest(problemDetails);
         }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<Result<IEnumerable<ReservationDto>>>> GetByUser()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IEnumerable<ReservationDto>>> GetByUser()
     {
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
         var result = await _service.GetByUserAsync(email);
-        if (result.IsErrorValidation)
+        if (result.IsValidationError)
         {
-            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+            var problemDetails = ProblemDetailsHelper.SimpleCreateValidationProblemDetails(
                 HttpContext, result.Errors);
 
             return BadRequest(problemDetails);
         }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 
     [Authorize]
     [HttpPost("{id}/confirm-return")]
-    public async Task<ActionResult<Result<string>>> ConfirmReturnByUser(string id)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfirmReturn(Guid id)
     {
         var result = await _service.ConfirmReturnAsync(id, HttpContext);
-        if (result.IsErrorNotFound)
+        if (result.IsNotFoundError)
         {
-            var problemDetails = ProblemDetailsHelper.CreateNotFoundProblemDetails(
-                HttpContext, "Reservation not found.");
+            var problemDetails = ProblemDetailsHelper.SimpleCreateNotFoundProblemDetails(
+                HttpContext, result.Errors.First().Message);
 
             return NotFound(problemDetails);
         }
-        if (result.IsErrorValidation)
+        if (result.IsValidationError)
         {
-            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+            var problemDetails = ProblemDetailsHelper.SimpleCreateValidationProblemDetails(
                 HttpContext, result.Errors);
 
             return BadRequest(problemDetails);
         }
 
-        return Ok(result);
+        return Ok();
     }
 
     [Authorize(Roles = "Staff")]
     [HttpGet("pending-return")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status405MethodNotAllowed)]
     public async Task<IActionResult> GetActiveReservations()
     {
-        var result = await _service.GetActiveReservations();
+        var reservations = await _service.GetActiveReservations();
 
-        return Ok(result);
+        return Ok(reservations);
     }
 }

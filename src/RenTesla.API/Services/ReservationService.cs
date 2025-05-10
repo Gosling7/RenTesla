@@ -5,34 +5,32 @@ using RenTesla.API.Data.DTOs;
 using RenTesla.API.Data.Models;
 using RenTesla.API.Data.Requests;
 using RenTesla.API.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace RenTesla.API.Services;
 
 public class ReservationService : IReservationService
 {
-    private readonly DateTime _utcNow = DateTime.UtcNow;
     private readonly RenTeslaDbContext _dbContext;
-    private readonly IValidator<ReservationCreateRequest> _reservationCreateValidator;
-    private readonly IValidator<ReservationByCodeQueryRequest> _byCodeQueryValidator;
+    private readonly IReservationByCodeQueryRequestValidator _byCodeQueryValidator;
+    private readonly IReservationCreateRequestValidator _createReservationValidator;
 
     public ReservationService(RenTeslaDbContext dbContext,
-        IValidator<ReservationCreateRequest> createReservationValidator,
-        IValidator<ReservationByCodeQueryRequest> queryByCodeValidator)
+        IReservationByCodeQueryRequestValidator queryByCodeValidator,
+        IReservationCreateRequestValidator createReservationValidator)
     {
         _dbContext = dbContext;
-        _reservationCreateValidator = createReservationValidator;
         _byCodeQueryValidator = queryByCodeValidator;
+        _createReservationValidator = createReservationValidator;
     }
 
-    public async Task<Result<IEnumerable<ReservationDto>>> GetByCodeAndMailAsync(
+    public async Task<Result<ReservationDto>> GetByCodeAndMailAsync(
         ReservationByCodeQueryRequest request)
     {
-        var validationResult = _byCodeQueryValidator.Validate(request);
-        if (!validationResult.IsValid)
+        var errors = _byCodeQueryValidator.Validate(request);
+        if (errors.Count > 0)
         {
-            var errors = ConvertToDictionary(validationResult);
-            return new Result<IEnumerable<ReservationDto>>(data: [], errors: errors,
-                errorType: ErrorType.Validation);
+            return Result<ReservationDto>.Failure(errors);
         }
 
         var reservation = await _dbContext.Reservations
@@ -44,41 +42,41 @@ public class ReservationService : IReservationService
                 r.ReservationCode == request.ReservationCode
                 && r.Email == request.Email
                 && r.Status != ReservationStatus.Completed)
-            .Where(r => r.To > _utcNow)
+            .Where(r => r.To > DateTime.UtcNow)
             .FirstOrDefaultAsync();
         if (reservation is null)
         {
-            return new Result<IEnumerable<ReservationDto>>(data: [], errors: [],
-                errorType: null);
+            return Result<ReservationDto>.Success(null!);
         }
 
-        return new Result<IEnumerable<ReservationDto>>(
-            data:
-            [
-                new ReservationDto(
-                    Id: reservation.Id.ToString(),
-                    ReservationCode: reservation.ReservationCode,
-                    CarModelName: reservation.Car.Model.Name,
-                    PickUpLocationName: reservation.PickUpLocation.Name,
-                    DropOffLocationName: reservation.DropOffLocation.Name,
-                    From: reservation.From,
-                    To: reservation.To,
-                    Status: reservation.Status,
-                    TotalCost: reservation.TotalCost)
-            ],
-            errors: [], errorType: null);
+
+        return Result<ReservationDto>.Success(
+            new ReservationDto(
+                Id: reservation.Id.ToString(),
+                ReservationCode: reservation.ReservationCode,
+                CarModelName: reservation.Car.Model.Name,
+                PickUpLocationName: reservation.PickUpLocation.Name,
+                DropOffLocationName: reservation.DropOffLocation.Name,
+                From: reservation.From,
+                To: reservation.To,
+                Status: reservation.Status,
+                TotalCost: reservation.TotalCost));
     }
 
     public async Task<Result<IEnumerable<ReservationDto>>> GetByUserAsync(string email)
     {
-        var emailValidator = new InlineValidator<string>();
-        emailValidator.RuleFor(x => x).EmailAddress();
-        var validationResult = emailValidator.Validate(email);
-        if (!validationResult.IsValid)
+        List<Error> errors = [];
+
+        EmailAddressAttribute emailValidator = new();
+        if (string.IsNullOrWhiteSpace(email)
+            || !emailValidator.IsValid(email))
         {
-            var errors = ConvertToDictionary(validationResult);
-            return new Result<IEnumerable<ReservationDto>>(data: [], errors: errors,
-                errorType: ErrorType.Validation);
+            errors.Add(new Error(
+                property: nameof(email),
+                message: $"Must be a valid email address",
+                type: SimpleErrorType.Validation));
+
+            return Result<IEnumerable<ReservationDto>>.Failure(errors);
         }
 
         var reservations = await _dbContext.Reservations
@@ -99,32 +97,27 @@ public class ReservationService : IReservationService
                 r.TotalCost))
             .ToListAsync();
 
-        return new Result<IEnumerable<ReservationDto>>(
-            data: reservations,
-            errors: [], errorType: null);
+        return Result<IEnumerable<ReservationDto>>.Success(reservations);
     }
 
     public async Task<Result<string>> CreateAsync(
         ReservationCreateRequest request)
     {
         // Non-db related validation
-        var validationResult = _reservationCreateValidator.Validate(request);
-        if (!validationResult.IsValid)
+        var errors = _createReservationValidator.Validate(request);
+        if (errors.Count > 0)
         {
-            var errors = ConvertToDictionary(validationResult);
-            return new Result<string>(data: string.Empty, errors: errors,
-                errorType: ErrorType.Validation);
+            return Result<string>.Failure(errors);
         }
 
         // Db related validation
-        Dictionary<string, List<string>> validationErrors = [];
-
         var availableCarModel = await _dbContext.CarModels.FindAsync(request.CarModelId);
         if (availableCarModel is null)
         {
-            validationErrors.Add(
-                key: $"{nameof(ReservationCreateRequest.CarModelId)}",
-                value: ["Car model for given id not found."]);
+            errors.Add(new Error(
+                property: nameof(request.CarModelId),
+                message: $"No car model found with the given id",
+                type: SimpleErrorType.Validation));
         }
 
         var availableCar = await _dbContext.Cars
@@ -137,40 +130,33 @@ public class ReservationService : IReservationService
             .FirstOrDefaultAsync();
         if (availableCar is null)
         {
-            // if key 'CarModelId' exists from validating nullability - add new error to it
-            // otherwise simply add the new key with error
-            var key = $"{nameof(ReservationCreateRequest.CarModelId)}";
-            var message = "Car for given id not found.";
-            if (validationErrors.TryGetValue(key, out _))
-            {
-                validationErrors[key].Add(message);
-            }
-            else
-            {
-                validationErrors.Add(key, [message]);
-            }
+            errors.Add(new Error(
+                property: nameof(request.CarModelId),
+                message: $"No car found with the given model id",
+                type: SimpleErrorType.Validation));
         }
 
         var existingPickUpLocation = await _dbContext.Locations.FindAsync(request.PickUpLocationId);
         if (existingPickUpLocation is null)
         {
-            validationErrors.Add(
-                key: $"{nameof(ReservationCreateRequest.PickUpLocationId)}",
-                value: ["Pick Up Location for given id not found."]);
+            errors.Add(new Error(
+                property: nameof(request.CarModelId),
+                message: $"No pickup location found with the given id",
+                type: SimpleErrorType.Validation));
         }
 
         var existingDropOffLocation = await _dbContext.Locations.FindAsync(request.DropOffLocationId);
         if (existingDropOffLocation is null)
         {
-            validationErrors.Add(
-                key: $"{nameof(ReservationCreateRequest.DropOffLocationId)}",
-                value: ["Drop Off Location for given id not found."]);
+            errors.Add(new Error(
+                property: nameof(request.CarModelId),
+                message: $"No drop off location found with the given id",
+                type: SimpleErrorType.Validation));
         }
 
-        if (validationErrors.Count > 0)
+        if (errors.Count > 0)
         {
-            return new Result<string>(data: string.Empty, errors: validationErrors,
-                errorType: ErrorType.Validation);
+            return Result<string>.Failure(errors);
         }
 
         var reservation = new Reservation
@@ -192,22 +178,22 @@ public class ReservationService : IReservationService
         await _dbContext.Reservations.AddAsync(reservation);
         await _dbContext.SaveChangesAsync();
 
-        return new Result<string>(data: reservation.ReservationCode, errors: [], errorType: null);
+        return Result<string>.Success(reservation.ReservationCode);
     }
 
-    public async Task<Result> ConfirmReturnAsync(string id, HttpContext httpContext)
+    public async Task<SimpleResult> ConfirmReturnAsync(Guid id, HttpContext httpContext)
     {
-        var reservationId = Guid.Parse(id);
+        List<Error> errors = [];
 
-        var reservation = await _dbContext.Reservations.FindAsync(reservationId);
+        var reservation = await _dbContext.Reservations.FindAsync(id);
         if (reservation is null)
         {
-            var errors = new Dictionary<string, List<string>>
-            {
-                { nameof(id), new List<string> { "Reservation not found." } }
-            };
+            errors.Add(new Error(
+                property: nameof(id),
+                message: "No reservation found with the given ID.",
+                type: SimpleErrorType.NotFound));
 
-            return new Result(errors: errors, errorType: ErrorType.NotFound);
+            return SimpleResult.Failure(errors);
         }
 
         var isStaffRole = httpContext.User.IsInRole("Staff");
@@ -215,11 +201,12 @@ public class ReservationService : IReservationService
         {
             if (reservation.StaffConfirmedReturn)
             {
-                var errors = new Dictionary<string, List<string>>
-                {
-                    { nameof(id), new List<string> { "Return already confirmed by staff." } }
-                };
-                return new Result(errors: errors, errorType: ErrorType.Validation);
+                errors.Add(new Error(
+                    property: nameof(id),
+                    message: "Return already confirmed by staff.",
+                    type: SimpleErrorType.Validation));
+
+                return SimpleResult.Failure(errors);
             }
 
             reservation.StaffConfirmedReturn = true;
@@ -228,11 +215,12 @@ public class ReservationService : IReservationService
         {
             if (reservation.UserConfirmedReturn)
             {
-                var errors = new Dictionary<string, List<string>>
-                {
-                    { nameof(id), new List<string> { "Return already confirmed by user." } }
-                };
-                return new Result(errors: errors, errorType: ErrorType.Validation);
+                errors.Add(new Error(
+                    property: nameof(id),
+                    message: "Return already confirmed by user.",
+                    type: SimpleErrorType.Validation));
+
+                return SimpleResult.Failure(errors);
             }
             reservation.UserConfirmedReturn = true;
         }
@@ -242,11 +230,12 @@ public class ReservationService : IReservationService
             var reservedCar = await _dbContext.Cars.FindAsync(reservation.CarId);
             if (reservedCar is null)
             {
-                var errors = new Dictionary<string, List<string>>
-                {
-                    { nameof(id), new List<string> { "Car from reservation not found." } }
-                };
-                return new Result(errors: errors, errorType: ErrorType.Validation);
+                errors.Add(new Error(
+                    property: nameof(id),
+                    message: "Car from the reservation not found.",
+                    type: SimpleErrorType.Validation));
+
+                return SimpleResult.Failure(errors);
             }
 
             reservedCar.CurrentLocation = reservation.DropOffLocation;
@@ -261,10 +250,10 @@ public class ReservationService : IReservationService
 
         await _dbContext.SaveChangesAsync();
 
-        return new Result(errors: [], errorType: null);
+        return SimpleResult.Success();
     }
 
-    public async Task<Result<IEnumerable<ReservationDto>>> GetActiveReservations()
+    public async Task<IEnumerable<ReservationDto>> GetActiveReservations()
     {
         var reservations = await _dbContext.Reservations
             .Include(r => r.Car)
@@ -282,16 +271,6 @@ public class ReservationService : IReservationService
                 r.TotalCost))
             .ToListAsync();
 
-        return new Result<IEnumerable<ReservationDto>>(data: reservations, errors: [], errorType: null);
-    }
-
-    private static Dictionary<string, List<string>> ConvertToDictionary(
-        FluentValidation.Results.ValidationResult validationResult)
-    {
-        return validationResult.Errors
-            .GroupBy(e => e.PropertyName)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Select(e => e.ErrorMessage).ToList());
+        return reservations;
     }
 }

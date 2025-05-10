@@ -20,7 +20,6 @@ public class LocationService : ILocationService
             .Select(l => new LocationDto(l.Id.ToString(), l.Name))
             .ToListAsync();
 
-        return new Result<IEnumerable<LocationDto>>(
-            data: locations, errors: []);
+        return Result<IEnumerable<LocationDto>>.Success(locations);
     }
 }

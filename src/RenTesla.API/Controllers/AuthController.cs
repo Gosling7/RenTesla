@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RenTesla.API.Data;
 using RenTesla.API.Data.DataTransferObjects;
 using RenTesla.API.Data.Requests;
+using RenTesla.API.Helpers;
+using RenTesla.API.Interfaces;
 
 namespace RenTesla.API.Controllers;
 
@@ -10,80 +11,79 @@ namespace RenTesla.API.Controllers;
 [ApiController]
 public class AuthController : ControllerBase
 {
-    private readonly SignInManager<IdentityUser> _signInManager;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly IAuthService _service;
 
-    public AuthController(
-        SignInManager<IdentityUser> signInManager,
-        UserManager<IdentityUser> userManager)
+    public AuthController(IAuthService service)
     {
-        _signInManager = signInManager;
-        _userManager = userManager;
+        _service = service;
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest parameter)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Register([FromBody] AuthRequest request)
     {
-        var user = new IdentityUser
+        var result = await _service.RegisterAsync(request);
+        if (result.IsValidationError)
         {
-            UserName = parameter.Email,
-            Email = parameter.Email
-        };
-        var result = await _userManager.CreateAsync(
-            user: user,
-            password: parameter.Password);
+            var problemDetails = ProblemDetailsHelper.SimpleCreateValidationProblemDetails(
+                HttpContext, result.Errors);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
+            return BadRequest(problemDetails);
         }
 
-        await _signInManager.SignInAsync(user, isPersistent: false);
         return Ok();
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<Result<UserInfoDto>>> Login(
-        [FromBody] LoginRequest parameter)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<UserInfoDto>> Login(
+        [FromBody] AuthRequest request)
     {
-        var result = await _signInManager.PasswordSignInAsync(
-            userName: parameter.Email,
-            password: parameter.Password,
-            isPersistent: false,
-            lockoutOnFailure: false);
-        if (!result.Succeeded)
+        var result = await _service.LoginAsync(request, HttpContext);
+        if (result.IsValidationError)
         {
-            return Unauthorized();
+            var problemDetails = ProblemDetailsHelper.SimpleCreateValidationProblemDetails(
+                HttpContext, result.Errors);
+
+            return BadRequest(problemDetails);
+        }
+        if (result.IsUnauthorizedError)
+        {
+            var problemDetails = ProblemDetailsHelper.SimpleUnauthorizedProblemDetails(
+                HttpContext);
+
+            return Unauthorized(problemDetails);
         }
 
-        var user = await _userManager.GetUserAsync(User);
-        var roles = await _userManager.GetRolesAsync(user);
-
-        return Ok(new Result<UserInfoDto>(
-            data: new UserInfoDto(Email: user.Email, Roles: roles),
-            errors: []));
+        return Ok(result.Value);
     }
 
     [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
+        await _service.LogoutAsync();
+
         return Ok();
     }
 
     [HttpGet("me")]
-    public async Task<ActionResult<Result<UserInfoDto>>> Me()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<UserInfoDto>> Me()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        var result = await _service.GetUserInfoAsync(HttpContext);
+        if (result.IsUnauthorizedError)
         {
-            return Unauthorized(new Result<UserInfoDto>(data: null, errors: []));
+            var problemDetails = ProblemDetailsHelper.SimpleUnauthorizedProblemDetails(
+                HttpContext);
+
+            return Unauthorized(problemDetails);
         }
 
-        var roles = await _userManager.GetRolesAsync(user);
-
-        return Ok(new Result<UserInfoDto>(
-            data: new UserInfoDto(Email: user.Email, Roles: roles),
-            errors: []));
+        return Ok(result.Value);
     }
 }

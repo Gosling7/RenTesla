@@ -5,9 +5,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RenTesla.API.Validators;
 
-public class ReservationByCodeQueryRequestValidator : IReservationByCodeQueryRequestValidator
+public class AuthRequestValidator : IAuthRequestValidator
 {
-    public List<Error> Validate(ReservationByCodeQueryRequest request)
+    public List<Error> Validate(AuthRequest request)
     {
         EmailAddressAttribute _emailValidator = new();
         List<Error> errors = [];
@@ -21,19 +21,19 @@ public class ReservationByCodeQueryRequestValidator : IReservationByCodeQueryReq
                 type: SimpleErrorType.Validation));
         }
 
-        var nameOfReservationCode = nameof(request.ReservationCode);
-        if (string.IsNullOrWhiteSpace(request.ReservationCode))
+        var nameOfPassword = nameof(request.Password);
+        if (string.IsNullOrWhiteSpace(request.Password))
         {
             errors.Add(new Error(
-                property: nameOfReservationCode,
+                property: nameOfPassword,
                 message: $"Must be provided",
                 type: SimpleErrorType.Validation));
         }
-        if (request.ReservationCode.Length != 36)
+        if (request.Password.Length < 6)
         {
             errors.Add(new Error(
-                property: nameOfReservationCode,
-                message: $"Must be of length 36",
+                property: nameOfPassword,
+                message: $"Must at least 6 characters long",
                 type: SimpleErrorType.Validation));
         }
 

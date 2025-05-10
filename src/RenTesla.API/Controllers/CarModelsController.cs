@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RenTesla.API.Data;
 using RenTesla.API.Data.DTOs;
 using RenTesla.API.Data.Requests;
+using RenTesla.API.Helpers;
 using RenTesla.API.Interfaces;
 
 namespace RenTesla.API.Controllers;
@@ -18,18 +18,21 @@ public class CarModelsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<IEnumerable<CarModelDto>>>> GetAsync(
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAsync(
         [FromQuery] CarModelQueryRequest query)
     {
         var result = await _service.GetAsync(query);
-        if (result.IsErrorValidation)
+
+        if (result.IsValidationError)
         {
-            var problemDetails = ProblemDetailsHelper.CreateValidationProblemDetails(
+            var problemDetails = ProblemDetailsHelper.SimpleCreateValidationProblemDetails(
                 HttpContext, result.Errors);
 
             return BadRequest(problemDetails);
         }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 }

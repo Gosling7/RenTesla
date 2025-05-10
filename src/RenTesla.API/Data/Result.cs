@@ -1,36 +1,47 @@
 ﻿namespace RenTesla.API.Data;
 
-public record Result<TDataType>
+public class Result<T>
 {
-    public TDataType? Data { get; init; }
-    public Dictionary<string, List<string>> Errors { get; init; } = [];
-    public ErrorType? ErrorType { get; init; }
-    public bool IsErrorNotFound => ErrorType == API.Data.ErrorType.NotFound;
-    public bool IsErrorValidation => ErrorType == API.Data.ErrorType.Validation;
-
-    public Result(TDataType data, Dictionary<string, List<string>> errors, ErrorType? errorType = null)
-    {
-        Data = data;
-        Errors = errors;
-        ErrorType = errorType;
-    }
-}
-
-public record Result
-{
-    public Dictionary<string, List<string>> Errors { get; init; } = [];
-    public ErrorType? ErrorType { get; set; }
-    public bool IsErrorNotFound => ErrorType == Data.ErrorType.NotFound;
-    public bool IsErrorValidation => ErrorType == Data.ErrorType.Validation;
-    public Result(Dictionary<string, List<string>> errors, ErrorType? errorType = null)
+    public T? Value { get; }
+    public IReadOnlyCollection<Error> Errors { get; }
+    
+    private Result(IReadOnlyCollection<Error> errors)
     {
         Errors = errors;
-        ErrorType = errorType;
+        Value = default;
     }
+
+    private Result(T value)
+    {
+        Value = value;
+        Errors = [];
+    }
+    
+    public bool IsValidationError => Errors.Any(e => e.Type == SimpleErrorType.Validation);
+    public bool IsNotFoundError => Errors.Any(e => e.Type == SimpleErrorType.NotFound);
+    public bool IsUnauthorizedError => Errors.Any(e => e.Type == SimpleErrorType.Unauthorized);
+
+    public static Result<T> Success(T value) => new(value);
+    public static Result<T> Failure(IReadOnlyCollection<Error> errors) => new(errors);
 }
 
-public enum ErrorType
+public class SimpleResult
 {
-    Validation,
-    NotFound
+    public IReadOnlyCollection<Error> Errors { get; }
+
+    private SimpleResult(IReadOnlyCollection<Error> errors)
+    {
+        Errors = errors;
+    }
+
+    private SimpleResult()
+    {
+        Errors = [];
+    }
+
+    public bool IsValidationError => Errors.Any(e => e.Type == SimpleErrorType.Validation);
+    public bool IsNotFoundError => Errors.Any(e => e.Type == SimpleErrorType.NotFound);
+
+    public static SimpleResult Success() => new();
+    public static SimpleResult Failure(IReadOnlyCollection<Error> errors) => new(errors);
 }
