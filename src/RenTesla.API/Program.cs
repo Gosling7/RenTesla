@@ -1,4 +1,3 @@
-using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RenTesla.API.Data;
@@ -12,8 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
-
-builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddDbContext<RenTeslaDbContext>(optionsBuilder =>
 {
