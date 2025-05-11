@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { ApiResult, CarModelDto, LocationDto } from '../types/ApiResults';
+import { CarModelDto, LocationDto } from '../types/ApiResults';
 import { CreateReservationRequest } from '../types/ApiRequests';
 
 const CreateReservationPage = () => {
@@ -60,8 +60,8 @@ const CreateReservationPage = () => {
       };
 
       // 1. Make reservation
-      const response = await axios.post<ApiResult<string>>('/api/reservations', requestData);
-      const reservationCode = response.data.data;
+      const response = await axios.post<string>('/api/reservations', requestData);
+      const reservationCode = response.data;
       setReservationCode(reservationCode);
 
       // 2. If user wants to create an account

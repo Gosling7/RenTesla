@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router';
-import { AuthRequest } from '../types/ApiRequests';
-import { ApiResult, UserInfoDto } from '../types/ApiResults';
 
 const LoginPage = () => {
-  const { setAuthenticated, setUserEmail: setLoggedInUserEmail, setUserRoles } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [message, setMessage] = useState<string>('');
@@ -15,19 +12,20 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const request: AuthRequest = { email, password };
-      const response = await axios.post<ApiResult<UserInfoDto>>('/api/auth/login', request);
-
-      setAuthenticated(true);
-      setLoggedInUserEmail(response.data.data.email);
-
-      setUserRoles(response.data.data.roles);
-
+      await login({ email, password });
       navigate('/', { state: { loginSuccess: true } });
+      
+      // const response = await axios.post<ApiResult<UserInfoDto>>('/api/auth/login', request);
+
+      // setAuthenticated(true);
+      // setLoggedInUserEmail(response.data.data.email);
+
+      // setUserRoles(response.data.data.roles);
+
+      // navigate('/', { state: { loginSuccess: true } });
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
-      setMessage(errorMessage);
-      alert(errorMessage);
+      setMessage(error.message);
+      alert(error.message);
     }
   };
   

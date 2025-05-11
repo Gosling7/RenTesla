@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { ApiResult, UserInfoDto } from '../types/ApiResults';
+import { AuthRequest } from '../types/ApiRequests';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -8,6 +9,7 @@ interface AuthContextType {
   setUserEmail: (value: string) => void;
   email: string | null;
   logout: () => Promise<void>;
+  login: (request: AuthRequest) => Promise<void>;
   checkAuth: () => Promise<void>;
   userRoles: string[];
   setUserRoles: (value: string[]) => void;
@@ -47,6 +49,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setEmail(null);
   };
 
+  const login = async (request: AuthRequest) => {
+    try {
+      const response = await axios.post<UserInfoDto>('/api/auth/login', request);
+
+      setIsAuthenticated(true);
+      setEmail(response.data.email);
+      setUserRoles(response.data.roles);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      throw new Error(errorMessage);
+    }    
+  }
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -58,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email, 
       setUserEmail: setUserEmail, 
       logout, 
+      login,
       checkAuth, 
       userRoles,
       setUserRoles 

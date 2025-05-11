@@ -2,7 +2,16 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { InputWithSuggestions } from './InputWithSuggestions';
 import { useNavigate } from 'react-router';
-import { ApiResult, CarModelDto, LocationDto } from '../types/ApiResults';
+import { CarModelDto, LocationDto } from '../types/ApiResults';
+
+interface ReservationState {
+  selectedModel: CarModelDto;
+  pickupLocationId: string;
+  dropoffLocationId: string;
+  from: string;
+  to: string;
+  locations: LocationDto[];
+}
 
 const ReservationForm = () => {
   const [pickUpLocationId, setPickUpLocationId] = useState('');
@@ -14,11 +23,13 @@ const ReservationForm = () => {
   const [availableModels, setAvailableModels] = useState<CarModelDto[]>([]);
   const [locations, setLocations] = useState<LocationDto[]>([]);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const response = await axios.get<ApiResult<LocationDto[]>>(`/api/locations`);     
-        setLocations(response.data.data)
+        const response = await axios.get<LocationDto[]>(`/api/locations`);     
+        setLocations(response.data)
       } catch (error) {
         console.error('Error fetching locations: ', error);
       }
@@ -36,7 +47,7 @@ const ReservationForm = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.get<ApiResult<CarModelDto[]>>('api/car-models', {
+      const response = await axios.get<CarModelDto[]>('api/car-models', {
         params: {
           available: true,
           pickupLocationId: pickUpLocationId,
@@ -44,7 +55,7 @@ const ReservationForm = () => {
           to: to
         }
       });
-      setAvailableModels(response.data.data);
+      setAvailableModels(response.data);
     } catch (error) {
       console.error('Error fetching available models: ', error);
     }
@@ -64,7 +75,6 @@ const ReservationForm = () => {
   const inputClass = 'p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400';
   const labelClass = 'text-sm font-medium mb-1';
 
-  const navigate = useNavigate();
 
   return (
     <div className="bg-gray-900 backdrop-blur-md rounded-xl p-6 shadow-lg w-full max-w-9/10 mx-auto mt-6">
@@ -123,47 +133,24 @@ const ReservationForm = () => {
             Search
           </button>
         </div>
-      </form>
-
-      {/* Results */}
-      {/* <div className="mt-6 text-white">
-        {availableModels.length > 0 ? (
-          <ul className="space-y-4">
-            {availableModels.map((model) => (
-              <li key={model.id} className="bg-gray-800 p-4 rounded shadow">
-                <div className="font-semibold">{model.name}</div>
-                <div>Daily Rate: €{model.dailyRate}</div>
-                <div>Available: {model.availableCount}</div>
-                <button
-        className="mt-2 px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
-        onClick={() => {
-          navigate('/reservations/create', {
-            state: {
-              selectedModel: model,
-              pickupLocationId: pickUpLocationId,
-              dropoffLocationId: dropOffLocationId,
-              from,
-              to,
-              locations
-            }
-          });
-        }}
-      >
-        Choose
-      </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-gray-400">No models available (or not searched yet).</p>
-        )}
-      </div> */}
+      </form>      
 
       {/* Results */}
       <div className="mt-6 text-white">
         {availableModels.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {availableModels.map((model) => (
+            
+            {availableModels.map((model) => {
+              const state: ReservationState = {
+                selectedModel: model,
+                pickupLocationId: pickUpLocationId,
+                dropoffLocationId: dropOffLocationId,
+                from,
+                to,
+                locations,
+            };
+            
+            return (
               <div
                 key={model.id}
                 className="bg-gray-800 p-6 rounded-lg shadow-lg flex items-center justify-between "
@@ -185,24 +172,16 @@ const ReservationForm = () => {
                     <button
                       className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg w-full sm:w-auto"
                       onClick={() => {
-                        navigate('/reservations/create', {
-                          state: {
-                            selectedModel: model,
-                            pickupLocationId: pickUpLocationId,
-                            dropoffLocationId: dropOffLocationId,
-                            from,
-                            to,
-                            locations
-                          }
-                        });
+                        navigate('/reservations/create', { state });
                       }}
-                    >
-                      Choose
-                    </button>
+                      >
+                        Choose
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-gray-400">No models available (or not searched yet).</p>

@@ -1,29 +1,15 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-
-interface ApiResponse<TDataType> {
-  isSuccess: boolean;
-  data: TDataType[];
-  errors: string[];
-}
-
-interface ReservationDetails {
-  reservationCode: string;
-  from: string;
-  to: string;
-  totalCost: number;
-  carModelName: string;
-  pickUpLocationName: string;
-  dropOffLocationName: string;
-}
+import { ReservationDto } from '../types/ApiResults';
 
 const ReservationsPage = () => {
   const [code, setCode] = useState<string>('');
-  const [details, setDetails] = useState<ReservationDetails[] | null>(null);
-  const [error, setError] = useState<string>('');
+  const [details, setDetails] = useState<ReservationDto | null>(null);
   const [email, setEmail] = useState<string>('');
   const { isAuthenticated, email: loggedInUserEmail } = useAuth();
+  const [codeError, setCodeError] = useState('');
+  const [emailError, setEmailError] = useState('');
   
   const inputClass =
     'p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full';
@@ -37,33 +23,38 @@ const ReservationsPage = () => {
 
   const handleSearch = async () => {
     try {
-      setError('');
+      setCodeError('');
+      setEmailError('');
       setDetails(null);
       if (code === '') {
-        setError('Please enter a reservation code');
+        setCodeError('Please enter a reservation code');
         return;
       }
 
       if (!isAuthenticated && email === '') {
-        setError('Please enter your email');
+        setEmailError('Please enter your email');
         return;
       }
 
-      const response = await axios.get<ApiResponse<ReservationDetails>>(`/api/reservations`, {
+      const response = await axios.get<ReservationDto>(`/api/reservations`, {
         params: {
           reservationCode: code,
           email: isAuthenticated ? loggedInUserEmail : email
         }
       });
 
-      if (response.data.isSuccess && response.data.data.length == 0)
+      if (!response.data)
       {
-        setError('No active reservation found')
+        setCodeError('No active reservation found');
       } else {
-        setDetails(response.data.data);
+        setDetails(response.data);
       }
     } catch (err: any) {
-      setError(err.response.data?.errors?.join(', '));
+      const errors = err.response?.data?.errors;
+      if (errors && typeof errors === 'object') {
+        setCodeError(errors.ReservationCode?.[0] || '');
+        setEmailError(errors.Email?.[0] || '');
+      }
     }
   };
 
@@ -80,6 +71,7 @@ const ReservationsPage = () => {
           className={inputClass}
           placeholder="Enter your reservation code"
         />
+        {codeError && <p className="text-red-400 text-sm mt-1">{codeError}</p>}
 
         {!isAuthenticated && (
           <>
@@ -91,6 +83,7 @@ const ReservationsPage = () => {
             className={inputClass}
             placeholder="Enter your email"
             />
+            {emailError && <p className="text-red-400 text-sm mt-1">{emailError}</p>}
           </>
         )}      
       </div>
@@ -98,22 +91,23 @@ const ReservationsPage = () => {
       <button
         onClick={handleSearch}
         className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-md text-white"
+        disabled={!code || (!isAuthenticated && !email)}
       >
         Search
       </button>
 
-      {error && <p className="mt-4 text-red-400">{error}</p>}
+      {/* {error && <p className="mt-4 text-red-400">{error}</p>} */}
 
-      {details && details.length > 0 && (
+      {details && (
         <div className="mt-6 bg-gray-800 p-4 rounded shadow space-y-2">
           <h3 className="text-lg font-semibold">Reservation Details</h3>
-          <p><strong>Code:</strong> {details[0].reservationCode}</p>
-          <p><strong>Car Model:</strong> {details[0].carModelName}</p>
-          <p><strong>Pick-up Location:</strong> {details[0].pickUpLocationName}</p>
-          <p><strong>Drop-off Location:</strong> {details[0].dropOffLocationName}</p>
-          <p><strong>From:</strong> {new Date(details[0].from).toLocaleString()}</p>
-          <p><strong>To:</strong> {new Date(details[0].to).toLocaleString()}</p>
-          <p><strong>Total Cost:</strong> €{details[0].totalCost}</p>
+          <p><strong>Code:</strong> {details.reservationCode}</p>
+          <p><strong>Car Model:</strong> {details.carModelName}</p>
+          <p><strong>Pick-up Location:</strong> {details.pickUpLocationName}</p>
+          <p><strong>Drop-off Location:</strong> {details.dropOffLocationName}</p>
+          <p><strong>From:</strong> {new Date(details.from).toLocaleString()}</p>
+          <p><strong>To:</strong> {new Date(details.to).toLocaleString()}</p>
+          <p><strong>Total Cost:</strong> €{details.totalCost}</p>
         </div>
       )}
     </div>

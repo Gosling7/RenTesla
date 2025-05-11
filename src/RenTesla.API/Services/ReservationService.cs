@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RenTesla.API.Data;
 using RenTesla.API.Data.DTOs;
 using RenTesla.API.Data.Models;
@@ -121,8 +120,10 @@ public class ReservationService : IReservationService
         }
 
         var availableCar = await _dbContext.Cars
+            .Include(c => c.Reservations)
             .Where(c =>
                 c.IsAvailable
+                && c.CurrentLocationId == request.PickUpLocationId
                 && c.ModelId == request.CarModelId
                 && !c.Reservations.Any(r =>
                     request.To > r.From && request.From < r.To

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { ApiResult, ReservationDto, ReservationStatus } from '../types/ApiResults';
+import { ReservationDto, ReservationStatus } from '../types/ApiResults';
 import { useAuth } from '../contexts/AuthContext';
 
 const StaffPage = () => {
@@ -11,8 +11,8 @@ const StaffPage = () => {
   useEffect(() => {
     const loadReservations = async () => {
       try {
-        const response = await axios.get<ApiResult<ReservationDto[]>>('/api/reservations/pending-return');
-        setReservations(response.data.data);
+        const response = await axios.get<ReservationDto[]>('/api/reservations/pending-return');
+        setReservations(response.data);
       } catch (err) {
         console.error('Failed to fetch reservations:', err);
       } finally {

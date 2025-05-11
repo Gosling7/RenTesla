@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { ApiResult, ReservationDto, ReservationStatus, UserInfoDto } from '../types/ApiResults';
+import { ReservationDto, ReservationStatus, UserInfoDto } from '../types/ApiResults';
 import { useAuth } from '../contexts/AuthContext';
 
 const UserPage = () => {
@@ -13,10 +13,10 @@ const UserPage = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const response = await axios.get<ApiResult<UserInfoDto>>('/api/auth/me');
-        setEmail(response.data.data.email);
-        const result = await axios.get<ApiResult<ReservationDto[]>>('/api/reservations/me');
-        setReservations(result.data.data);
+        const response = await axios.get<UserInfoDto>('/api/auth/me');
+        setEmail(response.data.email);
+        const result = await axios.get<ReservationDto[]>('/api/reservations/me');
+        setReservations(result.data);
       } catch (err: any) {
         if (err.response.status === 405) {
           console.log("method not allowed");
@@ -36,16 +36,18 @@ const UserPage = () => {
       setMessage('Your return has been successfully confirmed!');
       
       // Refresh the reservation list after confirming return
-      const result = await axios.get<ApiResult<ReservationDto[]>>('/api/reservations/me');
-      setReservations(result.data.data);
+      const result = await axios.get<ReservationDto[]>('/api/reservations/me');
+      setReservations(result.data);
     } catch (error) {
       console.error('Error confirming return:', error);
       alert('Something went wrong. Please try again.');
     }
   };
-
-  const activeReservations: ReservationDto[] = reservations.filter(r => r.status !== ReservationStatus.Completed);
-  const pastReservations: ReservationDto[] = reservations.filter(r => r.status === ReservationStatus.Completed);
+  const now = new Date();
+  const activeReservations = reservations.filter(
+    r => new Date(r.to) > now 
+    && r.status !== ReservationStatus.Completed);
+  const pastReservations = reservations.filter(r => new Date(r.to) <= now);
 
   if (loading) return <div className="text-white p-6">Loading dashboard...</div>;
 
@@ -85,9 +87,10 @@ const UserPage = () => {
                 <button
                   onClick={() => confirmReturn(r.id)}
                   className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white"
-                  disabled={r.status !== ReservationStatus.Active}  // Disable if already completed
+                  disabled={r.status === ReservationStatus.PendingReturn
+                  }  // Disable if already completed
                 >
-                  {r.status !== ReservationStatus.Active ? "You've confirmed return" : 'Confirm Return'}
+                  {r.status === ReservationStatus.PendingReturn ? "You've confirmed return" : 'Confirm Return'}
                 </button>
                 {r.status !== ReservationStatus.Active &&
                   <p>Awaiting our return confirmation</p>

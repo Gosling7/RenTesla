@@ -22,6 +22,6 @@ public class LocationsController : ControllerBase
     {
         var locations = await _service.GetLocationsAsync();
 
-        return Ok(locations);
+        return Ok(locations.Value);
     }
 }
