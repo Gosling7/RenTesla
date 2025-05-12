@@ -10,6 +10,7 @@ interface AuthContextType {
   email: string | null;
   logout: () => Promise<void>;
   login: (request: AuthRequest) => Promise<void>;
+  register: (request: AuthRequest) => Promise<void>;
   checkAuth: () => Promise<void>;
   userRoles: string[];
   setUserRoles: (value: string[]) => void;
@@ -62,6 +63,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }    
   }
 
+  const register = async (request: AuthRequest) => {
+    try {
+      await axios.post('/api/auth/register', request, { withCredentials: true });
+      await login(request); 
+    } catch (error: any) {
+      throw error; 
+    }
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -74,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserEmail: setUserEmail, 
       logout, 
       login,
+      register,
       checkAuth, 
       userRoles,
       setUserRoles 

@@ -12,7 +12,7 @@ import { LoginPage } from './pages/LoginPage.tsx'
 import { AuthProvider } from './contexts/AuthContext.tsx'
 import { UserPage } from './pages/UserPage.tsx'
 import { AboutPage } from './pages/AboutPage.tsx'
-import StaffPage from './pages/StaffPage.tsx'
+import { StaffPage } from './pages/StaffPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

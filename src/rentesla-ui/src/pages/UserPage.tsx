@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { ReservationDto, ReservationStatus, UserInfoDto } from '../types/ApiResults';
 import { useAuth } from '../contexts/AuthContext';
+import { ReservationItem } from '../components/ReservationItem';
 
 const UserPage = () => {
   const [email, setEmail] = useState('');
@@ -10,13 +11,22 @@ const UserPage = () => {
   const { isAuthenticated } = useAuth();
   const [message, setMessage] = useState<string>('');
 
+  const fetchReservations = useCallback(async () => {
+    try {
+      const res = await axios.get<ReservationDto[]>('/api/reservations/me');
+      setReservations(res.data);
+    } catch (err) {
+      console.error('Failed to fetch reservations:', err);
+      setMessage('Failed to load your reservations. Please try again later.');
+    }
+  }, []);
+
   useEffect(() => {
     const loadUserData = async () => {
       try {
         const response = await axios.get<UserInfoDto>('/api/auth/me');
         setEmail(response.data.email);
-        const result = await axios.get<ReservationDto[]>('/api/reservations/me');
-        setReservations(result.data);
+        await fetchReservations();
       } catch (err: any) {
         if (err.response.status === 405) {
           console.log("method not allowed");
@@ -28,7 +38,7 @@ const UserPage = () => {
     };
 
     loadUserData();
-  }, []);
+  }, [fetchReservations]);  
 
   const confirmReturn = async (reservationId: string) => {
     try {
@@ -36,8 +46,7 @@ const UserPage = () => {
       setMessage('Your return has been successfully confirmed!');
       
       // Refresh the reservation list after confirming return
-      const result = await axios.get<ReservationDto[]>('/api/reservations/me');
-      setReservations(result.data);
+      await fetchReservations();
     } catch (error) {
       console.error('Error confirming return:', error);
       alert('Something went wrong. Please try again.');
@@ -47,7 +56,9 @@ const UserPage = () => {
   const activeReservations = reservations.filter(
     r => new Date(r.to) > now 
     && r.status !== ReservationStatus.Completed);
-  const pastReservations = reservations.filter(r => new Date(r.to) <= now);
+  const pastReservations = reservations.filter(r =>
+    (r.status === ReservationStatus.Completed || r.status === ReservationStatus.Cancelled)
+     || new Date(r.to) <= now)
 
   if (loading) return <div className="text-white p-6">Loading dashboard...</div>;
 
@@ -74,28 +85,7 @@ const UserPage = () => {
         ) : (
           <ul className="space-y-4">
             {activeReservations.map(r => (
-              <li key={r.id} className="bg-gray-800 p-4 rounded shadow">
-                <p><strong>Car:</strong> {r.carModelName}</p>
-                <p><strong>From:</strong> {new Date(r.from).toLocaleString()}</p>
-                <p><strong>To:</strong> {new Date(r.to).toLocaleString()}</p>
-                <p><strong>Pickup:</strong> {r.pickUpLocationName}</p>
-                <p><strong>Dropoff:</strong> {r.dropOffLocationName}</p>
-                <p><strong>Total Cost:</strong> €{r.totalCost}</p>
-                <p><strong>Reservation Code:</strong> {r.reservationCode}</p>
-
-                {/* Disable the button after confirmation */}
-                <button
-                  onClick={() => confirmReturn(r.id)}
-                  className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white"
-                  disabled={r.status === ReservationStatus.PendingReturn
-                  }  // Disable if already completed
-                >
-                  {r.status === ReservationStatus.PendingReturn ? "You've confirmed return" : 'Confirm Return'}
-                </button>
-                {r.status !== ReservationStatus.Active &&
-                  <p>Awaiting our return confirmation</p>
-                }
-              </li>
+              <ReservationItem key={r.id} reservation={r} onConfirmReturn={confirmReturn} />
             ))}
           </ul>
         )}
@@ -108,15 +98,7 @@ const UserPage = () => {
         ) : (
           <ul className="space-y-4">
             {pastReservations.map(r => (
-              <li key={r.id} className="bg-gray-800 p-4 rounded shadow">
-                <p><strong>Car:</strong> {r.carModelName}</p>
-                <p><strong>From:</strong> {new Date(r.from).toLocaleString()}</p>
-                <p><strong>To:</strong> {new Date(r.to).toLocaleString()}</p>
-                <p><strong>Pickup:</strong> {r.pickUpLocationName}</p>
-                <p><strong>Dropoff:</strong> {r.dropOffLocationName}</p>
-                <p><strong>Total Cost:</strong> €{r.totalCost}</p>
-                <p><strong>Reservation Code:</strong> {r.reservationCode}</p>
-              </li>
+              <ReservationItem key={r.id} reservation={r} onConfirmReturn={null as any} />
             ))}
           </ul>
         )}

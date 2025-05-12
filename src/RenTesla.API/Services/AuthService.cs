@@ -36,6 +36,18 @@ public class AuthService : IAuthService
             Email = request.Email
         };
         var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+        {
+            var managerErrors = result.Errors.Select(e => 
+                new Error(
+                    property: nameof(request.Password),
+                    message: e.Description,
+                    type: SimpleErrorType.Validation));
+
+            errors.AddRange(managerErrors);
+
+            return SimpleResult.Failure(errors);
+        }
 
         await _signInManager.SignInAsync(user, isPersistent: false);
 

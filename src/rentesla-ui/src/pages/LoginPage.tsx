@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router';
+import { FormInput } from '../components/FormInput';
 
 const LoginPage = () => {
   const { login } = useAuth();
@@ -14,17 +15,8 @@ const LoginPage = () => {
     try {
       await login({ email, password });
       navigate('/', { state: { loginSuccess: true } });
-      
-      // const response = await axios.post<ApiResult<UserInfoDto>>('/api/auth/login', request);
-
-      // setAuthenticated(true);
-      // setLoggedInUserEmail(response.data.data.email);
-
-      // setUserRoles(response.data.data.roles);
-
-      // navigate('/', { state: { loginSuccess: true } });
     } catch (error: any) {
-      setMessage(error.message);
+      setMessage(error.message || 'Login failed');
       alert(error.message);
     }
   };
@@ -33,22 +25,28 @@ const LoginPage = () => {
     <div className="max-w-md mx-auto mt-10 p-6 bg-gray-900 rounded shadow">
       <h2 className="text-xl font-bold mb-4">Login</h2>
       <form onSubmit={handleLogin} className="space-y-4">
-        <input
+        <FormInput
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded"
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setMessage('');
+          }}
           required
         />
-        <input
+
+        <FormInput
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded"
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setMessage('');
+          }}
           required
         />
+        
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
           Login
         </button>

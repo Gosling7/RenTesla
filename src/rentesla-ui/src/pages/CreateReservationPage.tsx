@@ -1,9 +1,11 @@
-import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { CarModelDto, LocationDto } from '../types/ApiResults';
-import { CreateReservationRequest } from '../types/ApiRequests';
+import { AuthRequest, CreateReservationRequest } from '../types/ApiRequests';
+import { LabeledInput } from '../components/LabeledInput';
+import { ProblemDetails } from '../types/ProblemDetails';
+import axios from 'axios';
 
 const CreateReservationPage = () => {
   const navigate = useNavigate();
@@ -28,7 +30,10 @@ const CreateReservationPage = () => {
   const [email, setEmail] = useState<string>('');
   const [createAccount, setCreateAccount] = useState<boolean>(false);
   const [password, setPassword] = useState<string>('');
-  const { setAuthenticated, isAuthenticated, email: loggedInUserEmail, setUserEmail } = useAuth();
+  const { login, isAuthenticated, email: loggedInUserEmail, setAuthenticated } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   if (!selectedModel) {
     return (
@@ -44,43 +49,75 @@ const CreateReservationPage = () => {
     );
   }
 
-  const getLocationName = (id: string): string =>
-    locations.find(loc => loc.id === id)?.name || 'Unknown';
+  const getLocationName = useCallback(
+    (id: string) => locations.find(loc => loc.id === id)?.name || 'Unknown',
+    [locations]
+  ); 
+
+  const extractErrors = (problemDetails: ProblemDetails): string => {
+    if (!problemDetails.errors) return problemDetails.title || "An unknown error occurred";
+    return Object.entries(problemDetails.errors)
+      .flatMap(([field, messages]) =>
+        messages.map(msg => `${field}: ${msg}`)
+      )
+      .join(', ');
+  }
+
+  const handleApiErrors = (error: any) => {
+    const data = error.response?.data;
+    setEmailError('');
+    setPasswordError('');
+
+    if (data?.errors) {
+      if (data.errors.Email) {
+        setEmailError(data.errors.Email.join(', '));
+      }
+      if (data.errors.Password) {
+        setPasswordError(data.errors.Password.join(', '));
+      }
+    } else if (typeof data === 'string') {
+      setEmailError(data);
+    } else if (data?.title) {
+      setEmailError(data.title);
+    } else {
+      setEmailError('An unexpected error occurred.');
+    }
+  }; 
 
   const handleConfirmReservation = async () => {
+    // Make reservation
     try {
-      const requestData: CreateReservationRequest = {
+      const request: CreateReservationRequest = {
         email: isAuthenticated ? loggedInUserEmail! : email,
         carModelId: selectedModel.id,
         pickUpLocationId: pickupLocationId,
         dropOffLocationId: dropoffLocationId,
         from: from,
         to: to,
-        totalCost: selectedModel.totalCost
-      };
-
-      // 1. Make reservation
-      const response = await axios.post<string>('/api/reservations', requestData);
+        totalCost: selectedModel.totalCost,
+        createAccount: createAccount,
+        password: password
+      };            
+      const response = await axios.post<string>('/api/reservations', request);
       const reservationCode = response.data;
-      setReservationCode(reservationCode);
+      setReservationCode(reservationCode);      
+    } catch (error: any) {
+      var errorMessage = extractErrors(error.response.data)
+      setError(errorMessage);
+      setAuthenticated(false);
+      return;
+    }    
 
-      // 2. If user wants to create an account
-      if (createAccount && password) {
-        await axios.post('/api/auth/register', {
-          email,
-          password,
-        });
+    if (createAccount && password) {
+      try {   
+        const request: AuthRequest = { email, password };
+        await login(request);
 
-        const response = await axios.post('/api/auth/login', {
-          email,
-          password,
-        });
-        setAuthenticated(true);
-        setUserEmail(response.data.data.email);
-      }
-    } catch (error) {
-      console.error('Error creating reservation:', error);
-    }
+      } catch (error: any) {
+        handleApiErrors(error);
+        return;
+      }   
+    }    
   };
 
   return (
@@ -128,28 +165,28 @@ const CreateReservationPage = () => {
 
           {/* Email Input */}
           <div className="bg-gray-700 rounded-lg p-4 col-span-1 sm:col-span-2">
-            <h2 className="text-xl font-semibold mb-2">Your Email</h2>
-            <input
+            <LabeledInput
+              label="Your Email"
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full p-2 rounded-lg bg-gray-600 text-white"
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
+              error={emailError}
             />
           </div>
 
           {/* Password Input (conditionally shown) */}
           {createAccount && (
           <div className="bg-gray-700 rounded-lg mt-2 p-4 col-span-1 sm:col-span-2">
-            <h2 className="text-xl font-semibold mb-2">Password</h2>
-            <input
+            <LabeledInput
+              label="Password"
               type="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full p-2 rounded-lg bg-gray-600 text-white"
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter a password"
-              required={createAccount}
+              required
+              error={passwordError}
             />
           </div>
           )}
@@ -171,6 +208,8 @@ const CreateReservationPage = () => {
           </button>
         </div>
       )}
+
+      {error && <p className="text-red-400 text-center mt-4">{error}</p>}
     </div>
   );
 };

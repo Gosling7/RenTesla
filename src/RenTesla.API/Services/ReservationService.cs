@@ -13,14 +13,17 @@ public class ReservationService : IReservationService
     private readonly RenTeslaDbContext _dbContext;
     private readonly IReservationByCodeQueryRequestValidator _byCodeQueryValidator;
     private readonly IReservationCreateRequestValidator _createReservationValidator;
+    private readonly IAuthService _authService;
 
     public ReservationService(RenTeslaDbContext dbContext,
         IReservationByCodeQueryRequestValidator queryByCodeValidator,
-        IReservationCreateRequestValidator createReservationValidator)
+        IReservationCreateRequestValidator createReservationValidator,
+        IAuthService authService)
     {
         _dbContext = dbContext;
         _byCodeQueryValidator = queryByCodeValidator;
         _createReservationValidator = createReservationValidator;
+        _authService = authService;
     }
 
     public async Task<Result<ReservationDto>> GetByCodeAndMailAsync(
@@ -109,77 +112,106 @@ public class ReservationService : IReservationService
             return Result<string>.Failure(errors);
         }
 
-        // Db related validation
-        var availableCarModel = await _dbContext.CarModels.FindAsync(request.CarModelId);
-        if (availableCarModel is null)
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
         {
-            errors.Add(new Error(
-                property: nameof(request.CarModelId),
-                message: $"No car model found with the given id",
-                type: SimpleErrorType.Validation));
-        }
+            if (request.CreateAccount is not null
+            && request.CreateAccount == true)
+            {
+                var authRequest = new AuthRequest(request.Email, request.Password);
 
-        var availableCar = await _dbContext.Cars
-            .Include(c => c.Reservations)
-            .Where(c =>
-                c.IsAvailable
-                && c.CurrentLocationId == request.PickUpLocationId
-                && c.ModelId == request.CarModelId
-                && !c.Reservations.Any(r =>
-                    request.To > r.From && request.From < r.To
-                    && r.Status != ReservationStatus.Completed))
-            .FirstOrDefaultAsync();
-        if (availableCar is null)
-        {
-            errors.Add(new Error(
-                property: nameof(request.CarModelId),
-                message: $"No car found with the given model id",
-                type: SimpleErrorType.Validation));
-        }
+                var registerResult = await _authService.RegisterAsync(authRequest);
+                if (registerResult.IsValidationError)
+                {
+                    await transaction.RollbackAsync();
+                    return Result<string>.Failure(registerResult.Errors);
+                }
+            }
 
-        var existingPickUpLocation = await _dbContext.Locations.FindAsync(request.PickUpLocationId);
-        if (existingPickUpLocation is null)
-        {
-            errors.Add(new Error(
-                property: nameof(request.CarModelId),
-                message: $"No pickup location found with the given id",
-                type: SimpleErrorType.Validation));
-        }
+            // Db related validation
+            var availableCarModel = await _dbContext.CarModels.FindAsync(request.CarModelId);
+            if (availableCarModel is null)
+            {
+                errors.Add(new Error(
+                    property: nameof(request.CarModelId),
+                    message: $"No car model found with the given id",
+                    type: SimpleErrorType.Validation));
+            }
 
-        var existingDropOffLocation = await _dbContext.Locations.FindAsync(request.DropOffLocationId);
-        if (existingDropOffLocation is null)
-        {
-            errors.Add(new Error(
-                property: nameof(request.CarModelId),
-                message: $"No drop off location found with the given id",
-                type: SimpleErrorType.Validation));
-        }
+            var availableCar = await _dbContext.Cars
+                .Include(c => c.Reservations)
+                .Where(c =>
+                    c.IsAvailable
+                    && c.CurrentLocationId == request.PickUpLocationId
+                    && c.ModelId == request.CarModelId
+                    && !c.Reservations.Any(r =>
+                        request.To > r.From && request.From < r.To
+                        && r.Status != ReservationStatus.Completed))
+                .FirstOrDefaultAsync();
+            if (availableCar is null)
+            {
+                errors.Add(new Error(
+                    property: nameof(request.CarModelId),
+                    message: $"No car found with the given model id",
+                    type: SimpleErrorType.Validation));
+            }
 
-        if (errors.Count > 0)
+            var existingPickUpLocation = await _dbContext.Locations.FindAsync(request.PickUpLocationId);
+            if (existingPickUpLocation is null)
+            {
+                errors.Add(new Error(
+                    property: nameof(request.CarModelId),
+                    message: $"No pickup location found with the given id",
+                    type: SimpleErrorType.Validation));
+            }
+
+            var existingDropOffLocation = await _dbContext.Locations.FindAsync(request.DropOffLocationId);
+            if (existingDropOffLocation is null)
+            {
+                errors.Add(new Error(
+                    property: nameof(request.CarModelId),
+                    message: $"No drop off location found with the given id",
+                    type: SimpleErrorType.Validation));
+            }
+
+            if (errors.Count > 0)
+            {
+                return Result<string>.Failure(errors);
+            }
+
+            var reservation = new Reservation
+            {
+                Id = Guid.NewGuid(),
+                Email = request.Email,
+                CarId = availableCar!.Id,
+                PickUpLocationId = existingPickUpLocation!.Id,
+                DropOffLocationId = existingDropOffLocation!.Id,
+                From = request.From,
+                To = request.To,
+                DailyRate = availableCarModel!.BaseDailyRate,
+                Car = availableCar,
+                PickUpLocation = existingPickUpLocation,
+                DropOffLocation = existingDropOffLocation,
+                TotalCost = request.TotalCost
+            };
+
+            await _dbContext.Reservations.AddAsync(reservation);
+            await _dbContext.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            return Result<string>.Success(reservation.ReservationCode);
+        }
+        catch (Exception ex)
         {
+            await transaction.RollbackAsync();
+
+            errors.Add(new Error(
+                property: nameof(request.CreateAccount),
+                message: ex.Message,
+                type: SimpleErrorType.Validation));
             return Result<string>.Failure(errors);
         }
-
-        var reservation = new Reservation
-        {
-            Id = Guid.NewGuid(),
-            Email = request.Email,
-            CarId = availableCar!.Id,
-            PickUpLocationId = existingPickUpLocation!.Id,
-            DropOffLocationId = existingDropOffLocation!.Id,
-            From = request.From,
-            To = request.To,
-            DailyRate = availableCarModel!.BaseDailyRate,
-            Car = availableCar,
-            PickUpLocation = existingPickUpLocation,
-            DropOffLocation = existingDropOffLocation,
-            TotalCost = request.TotalCost
-        };
-
-        await _dbContext.Reservations.AddAsync(reservation);
-        await _dbContext.SaveChangesAsync();
-
-        return Result<string>.Success(reservation.ReservationCode);
     }
 
     public async Task<SimpleResult> ConfirmReturnAsync(Guid id, HttpContext httpContext)

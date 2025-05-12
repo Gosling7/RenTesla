@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { ReservationDto, ReservationStatus } from '../types/ApiResults';
 import { useAuth } from '../contexts/AuthContext';
+import { StaffReservationItem } from '../components/StaffReservationItem';
 
-const StaffPage = () => {
+export const StaffPage = () => {
   const [reservations, setReservations] = useState<ReservationDto[]>([]);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated, userRoles } = useAuth();
@@ -35,7 +36,7 @@ const StaffPage = () => {
     }
   };
 
-  if (!isAuthenticated && !userRoles.includes('Staff')) {
+  if (!isAuthenticated || !userRoles.includes('Staff')) {
     return (
         <div className="text-white p-6">
           <p>You're not a staff member. Click <a href="/" className="text-blue-400 underline">here</a> to return to homepage.</p>
@@ -49,25 +50,12 @@ const StaffPage = () => {
     <div className="max-w-5xl mx-auto mt-10 text-white">
       <h1 className="text-3xl font-bold mb-6">Active Reservations - Staff Panel</h1>
       <ul className="space-y-4">
-        {reservations.map(reservation => (
-          <li key={reservation.id} className="bg-gray-800 p-4 rounded shadow">
-            {/* <p><strong>User Email:</strong> {reservation.userEmail}</p> */}
-            <p><strong>Car:</strong> {reservation.carModelName}</p>
-            <p><strong>From:</strong> {new Date(reservation.from).toLocaleString()}</p>
-            <p><strong>To:</strong> {new Date(reservation.to).toLocaleString()}</p>
-            <p><strong>Status:</strong> {ReservationStatus[reservation.status]}</p>
-            <button
-              className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white"
-              disabled={reservation.status === ReservationStatus.Completed}
-              onClick={() => confirmReturn(reservation.id)}
-            >
-              {reservation.status === ReservationStatus.Completed ? 'Confirmed' : 'Confirm Return'}
-            </button>
-          </li>
+        {reservations.map(r => (
+          <StaffReservationItem key={r.id} reservation={r} onConfirmReturn={confirmReturn} />
         ))}
       </ul>
     </div>
   );
 };
 
-export default StaffPage;
+//export { StaffPage };

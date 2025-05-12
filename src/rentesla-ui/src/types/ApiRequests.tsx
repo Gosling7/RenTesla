@@ -11,4 +11,6 @@ export interface CreateReservationRequest {
     from: string;
     to: string;
     totalCost: number;
+    createAccount?: boolean;
+    password?: string;
 }
