@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router';
 import { FormInput } from '../components/FormInput';
 
-const LoginPage = () => {
+export const LoginPage = () => {
   const { login } = useAuth();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -55,5 +55,3 @@ const LoginPage = () => {
     </div>
   );
 };
-
-export { LoginPage };

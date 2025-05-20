@@ -7,7 +7,7 @@ import { StaffReservationItem } from '../components/StaffReservationItem';
 export const StaffPage = () => {
   const [reservations, setReservations] = useState<ReservationDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated, userRoles } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const loadReservations = async () => {
@@ -36,7 +36,7 @@ export const StaffPage = () => {
     }
   };
 
-  if (!isAuthenticated || !userRoles.includes('Staff')) {
+  if (!isAuthenticated || !user?.roles.includes('Staff')) {
     return (
         <div className="text-white p-6">
           <p>You're not a staff member. Click <a href="/" className="text-blue-400 underline">here</a> to return to homepage.</p>
@@ -57,5 +57,3 @@ export const StaffPage = () => {
     </div>
   );
 };
-
-//export { StaffPage };

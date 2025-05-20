@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { LocationDto } from "../types/ApiResults";
 
-type InputWithSuggetionsProps = {
+interface InputWithSuggetionsProps {
   label: string;
   value: string;
   onChange: (name: string) => void;
   suggestions: LocationDto[];
 }
 
-const InputWithSuggestions: React.FC<InputWithSuggetionsProps> = ({
+export const InputWithSuggestions: React.FC<InputWithSuggetionsProps> = ({
   label, 
   value, 
   onChange, 
@@ -65,5 +65,3 @@ const InputWithSuggestions: React.FC<InputWithSuggetionsProps> = ({
       </div>
     );
 };
-
-export { InputWithSuggestions };

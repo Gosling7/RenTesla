@@ -1,6 +1,6 @@
 import { ReservationDto, ReservationStatus } from '../types/ApiResults';
 
-type Props = {
+interface Props {
   reservation: ReservationDto;
   onConfirmReturn: (id: string) => void;
 };

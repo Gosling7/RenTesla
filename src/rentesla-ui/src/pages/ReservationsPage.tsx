@@ -4,18 +4,17 @@ import { useAuth } from '../contexts/AuthContext';
 import { ReservationDto } from '../types/ApiResults';
 import { ReservationDetailsCard } from '../components/ReservationDetailsCard';
 
-const ReservationsPage = () => {
+const inputClass =
+  'p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full';
+const labelClass = 'text-sm font-medium mb-1';
+
+export const ReservationsPage = () => {
   const [code, setCode] = useState<string>('');
   const [details, setDetails] = useState<ReservationDto | null>(null);
   const [email, setEmail] = useState<string>('');
   const { isAuthenticated, email: loggedInUserEmail } = useAuth();
   const [codeError, setCodeError] = useState('');
   const [emailError, setEmailError] = useState('');
-  
-  
-  const inputClass =
-    'p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full';
-  const labelClass = 'text-sm font-medium mb-1';
 
   useEffect(() => {
     if (isAuthenticated && loggedInUserEmail) {
@@ -102,5 +101,3 @@ const ReservationsPage = () => {
     </div>
   );
 };
-
-export { ReservationsPage };

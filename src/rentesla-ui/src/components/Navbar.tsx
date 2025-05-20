@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 
-const Navbar = () => {
+export const Navbar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout, userRoles } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
 
-  const isStaff = userRoles?.includes("Staff");
+  const isStaff = user?.roles.includes("Staff");
 
   const handleLogout = async () => {
       await logout();
@@ -69,5 +69,3 @@ const Navbar = () => {
       </nav>
   );
 };
-
-export { Navbar };

@@ -6,13 +6,13 @@ type ReservationItemProps = {
   onConfirmReturn: (id: string) => void;
 }
 
-const ReservationItem: React.FC<ReservationItemProps> = ({ reservation, onConfirmReturn }) => {
+export const ReservationItem: React.FC<ReservationItemProps> = ({ reservation, onConfirmReturn }) => {
   const isReturnConfirmed = 
     reservation.status === ReservationStatus.PendingReturn
     || reservation.status === ReservationStatus.Completed;
 
   return (
-    <li className="bg-gray-800 p-4 rounded shadow">
+    <li className="bg-gray-800 p-4 rounded-3xl shadow">
       <p><strong>Car:</strong> {reservation.carModelName}</p>
       <p><strong>From:</strong> {new Date(reservation.from).toLocaleString()}</p>
       <p><strong>To:</strong> {new Date(reservation.to).toLocaleString()}</p>
@@ -24,7 +24,7 @@ const ReservationItem: React.FC<ReservationItemProps> = ({ reservation, onConfir
         <>
           <button
             onClick={() => onConfirmReturn(reservation.id)}
-            className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white"
+            className="mt-2"
             disabled={isReturnConfirmed}
           >
             {isReturnConfirmed ? "You've confirmed return" : 'Confirm Return'}
@@ -37,5 +37,3 @@ const ReservationItem: React.FC<ReservationItemProps> = ({ reservation, onConfir
     </li>
   );
 };
-
-export { ReservationItem };

@@ -4,7 +4,7 @@ import { AuthRequest } from '../types/ApiRequests';
 import { useAuth } from '../contexts/AuthContext';
 import { FormInput } from '../components/FormInput';
 
-const RegisterPage = () => {
+export const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { register, login } = useAuth();
@@ -91,5 +91,3 @@ const RegisterPage = () => {
     </div>
   );
 };
-
-export{ RegisterPage };

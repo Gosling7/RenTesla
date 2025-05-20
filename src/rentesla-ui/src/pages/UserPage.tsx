@@ -4,7 +4,7 @@ import { ReservationDto, ReservationStatus, UserInfoDto } from '../types/ApiResu
 import { useAuth } from '../contexts/AuthContext';
 import { ReservationItem } from '../components/ReservationItem';
 
-const UserPage = () => {
+export const UserPage = () => {
   const [email, setEmail] = useState('');
   const [reservations, setReservations] = useState<ReservationDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +76,7 @@ const UserPage = () => {
       <p className="mb-8 text-lg">Logged in as: <span className="font-semibold">{email}</span></p>
 
       {/* Message after confirming return */}
-      {message && <div className="bg-green-600 text-white p-4 rounded mb-4">{message}</div>}
+      {message && <div className="bg-green-600 text-white p-4 rounded-3xl mb-4">{message}</div>}
 
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Active Reservations</h2>
@@ -106,5 +106,3 @@ const UserPage = () => {
     </div>
   );
 };
-
-export { UserPage };

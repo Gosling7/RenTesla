@@ -1,13 +1,11 @@
-import { ReservationForm } from '../components/ReservationForm'
+import { ReservationSearchContainer } from '../components/ReservationSearchContainer'
 import '../home.css'
 
-const HomePage = () => {
+export const HomePage = () => {
   return (
     <div className="text-white pt-6">
       <h1>Welcome to RenTesla!</h1>            
-      <ReservationForm />
+      <ReservationSearchContainer />
     </div>
   )
 }
-
-export { HomePage }

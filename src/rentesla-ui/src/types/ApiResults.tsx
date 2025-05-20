@@ -1,9 +1,3 @@
-export interface ApiResult<TDataType> {
-    isSuccess: boolean;
-    data: TDataType;
-    errors: string[];
-};
-
 export interface ReservationDto {
     id: string;
     carModelName: string;
