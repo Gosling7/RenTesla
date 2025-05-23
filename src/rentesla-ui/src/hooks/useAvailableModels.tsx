@@ -11,9 +11,15 @@ export function useAvailableModels() {
     const [to, setTo] = useState('');
     
     useEffect(() => {
-        axios.get<LocationDto[]>('/api/locations')
-        .then(res => setLocations(res.data))
-        .catch(console.error);
+        const fetchLocations = async () => {
+            try {
+                const response = await axios.get<LocationDto[]>('/api/locations')
+                setLocations(response.data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchLocations();
     }, []);
     
     const searchModels = useCallback(

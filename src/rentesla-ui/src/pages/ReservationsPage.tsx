@@ -4,23 +4,23 @@ import { useAuth } from '../contexts/AuthContext';
 import { ReservationDto } from '../types/ApiResults';
 import { ReservationDetailsCard } from '../components/ReservationDetailsCard';
 
-const inputClass =
-'p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full';
+const inputClass ='p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full';
 const labelClass = 'text-sm font-medium mb-1';
 
 export const ReservationsPage = () => {
     const [code, setCode] = useState<string>('');
     const [details, setDetails] = useState<ReservationDto | null>(null);
     const [email, setEmail] = useState<string>('');
-    const { isAuthenticated, email: loggedInUserEmail } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [codeError, setCodeError] = useState('');
     const [emailError, setEmailError] = useState('');
     
+    // Automatically set the email if logged in
     useEffect(() => {
-        if (isAuthenticated && loggedInUserEmail) {
-            setEmail(loggedInUserEmail); // Automatically set the email if logged in
+        if (isAuthenticated && user?.email) {
+            setEmail(user.email); 
         }
-    }, [isAuthenticated, loggedInUserEmail]);
+    }, [isAuthenticated, user?.email]);
     
     const handleSearch = async () => {
         try {
@@ -40,7 +40,7 @@ export const ReservationsPage = () => {
             const response = await axios.get<ReservationDto>(`/api/reservations`, {
                 params: {
                     reservationCode: code,
-                    email: isAuthenticated ? loggedInUserEmail : email
+                    email: email
                 }
             });
             
