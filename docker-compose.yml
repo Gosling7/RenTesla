@@ -3,7 +3,7 @@ version: '3.4'
 services:
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-CU17-ubuntu-22.04
-    container_name: mssql  
+    container_name: mssql
     ports:
       - 1433:1433
     environment:
@@ -11,6 +11,37 @@ services:
       - MSSQL_SA_PASSWORD=Password1!
     volumes:
       - rentesla-mssql-data:/var/opt/mssql    
+
+  rentesla.api:
+    container_name: rentesla.api
+    build: 
+      context: .
+      dockerfile: ./src/RenTesla.API/Dockerfile
+    ports:
+      - 8080:8080
+      - 8081:8081
+    depends_on:
+      - mssql
+    environment:
+      - DB_Host=mssql
+    restart: always
+
+  rentesla.ui:
+    container_name: rentesla.ui
+    build: 
+      context: ./src/rentesla-ui
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - mssql
+      - rentesla.api
+    environment:
+      # - HOST=0.0.0.0
+      # - NODE_ENV=development
+      - BACKEND_URL=http://rentesla.api:8080
+    stdin_open: true
+    tty: true
 
 volumes:
   rentesla-mssql-data:

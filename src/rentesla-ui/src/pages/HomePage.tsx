@@ -1,5 +1,5 @@
 import { ReservationSearchContainer } from '../components/ReservationSearchContainer'
-import '../home.css'
+import '../Home.css'
 
 export const HomePage = () => {
     return (
