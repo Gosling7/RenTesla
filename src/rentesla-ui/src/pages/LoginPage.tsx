@@ -22,7 +22,7 @@ export const LoginPage = () => {
     };
     
     return (
-        <div className="max-w-md mx-auto mt-10 p-6 bg-gray-900 rounded shadow">
+        <div className="dark:text-white max-w-md mx-auto mt-10 p-6 rounded shadow-lg border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900">
             <h2 className="text-xl font-bold mb-4">Login</h2>
             <form onSubmit={handleLogin} className="space-y-4">
                 <FormInput

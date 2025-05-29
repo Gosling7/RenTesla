@@ -24,7 +24,7 @@ services:
       - mssql
     environment:
       - DB_Host=mssql
-    restart: always
+    # restart: always
 
   rentesla.ui:
     container_name: rentesla.ui

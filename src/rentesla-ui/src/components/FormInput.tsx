@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface FormInputProps {
+interface Props {
     type: string;
     placeholder: string;
     value: string;
@@ -9,14 +9,14 @@ interface FormInputProps {
     required?: boolean;
 }
 
-export const FormInput: React.FC<FormInputProps> = ({
+export const FormInput = ({
     type,
     placeholder,
     value,
     onChange,
     error,
     required = false,
-}) => {
+}: Props) => {
     return (
         <div className="space-y-1">
             <input
@@ -24,6 +24,7 @@ export const FormInput: React.FC<FormInputProps> = ({
                 placeholder={placeholder}
                 value={value}
                 onChange={onChange}
+                // className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                 className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required={required}
             />

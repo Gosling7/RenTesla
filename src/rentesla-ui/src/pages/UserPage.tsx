@@ -71,38 +71,103 @@ export const UserPage = () => {
     }
     
     return (
-        <div className="max-w-4xl mx-auto mt-10 text-white">
-            <h1 className="text-3xl font-bold mb-6">Your Account</h1>
-            <p className="mb-8 text-lg">Logged in as: <span className="font-semibold">{email}</span></p>
+        <div className="max-w-4xl mx-auto p-6">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-2 dark:text-white">Your Account</h1>
+                <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Logged in as: <span className="font-semibold text-gray-900 dark:text-white">{email}</span>
+                </p>
+            </div>
             
-            {/* Message after confirming return */}
-            {message && <div className="bg-green-600 text-white p-4 rounded-3xl mb-4">{message}</div>}
+            {message && (
+                <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 p-4 rounded-xl mb-6">
+                    {message}
+                </div>
+            )}
             
             <section className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Active Reservations</h2>
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-semibold dark:text-white">Active Reservations</h2>
+                    <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium px-3 py-1 rounded-full">
+                        {activeReservations.length}
+                    </span>
+                </div>
+                
                 {activeReservations.length === 0 ? (
-                    <p>No active reservations.</p>
+                    <div className="bg-gray-50 dark:bg-neutral-900 rounded-xl p-6 text-center border border-gray-200 dark:border-neutral-800">
+                        <p className="text-gray-500 dark:text-gray-400">No active reservations</p>
+                    </div>
                 ) : (
-                    <ul className="space-y-4">
+                    <div className="space-y-4">
                         {activeReservations.map(r => (
-                            <ReservationItem key={r.id} reservation={r} onConfirmReturn={confirmReturn} />
+                            <ReservationItem 
+                                key={r.id} 
+                                reservation={r} 
+                                onConfirmReturn={confirmReturn} 
+                            />
                         ))}
-                    </ul>
+                    </div>
                 )}
             </section>
             
             <section>
-                <h2 className="text-2xl font-semibold mb-4">Reservation History</h2>
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-semibold dark:text-white">Reservation History</h2>
+                    <span className="bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-gray-300 text-sm font-medium px-3 py-1 rounded-full">
+                        {pastReservations.length}
+                    </span>
+                </div>
+                
                 {pastReservations.length === 0 ? (
-                    <p>No past reservations.</p>
+                    <div className="bg-gray-50 dark:bg-neutral-900 rounded-xl p-6 text-center border border-gray-200 dark:border-neutral-800">
+                        <p className="text-gray-500 dark:text-gray-400">No past reservations</p>
+                    </div>
                 ) : (
-                    <ul className="space-y-4">
+                    <div className="space-y-4">
                         {pastReservations.map(r => (
-                            <ReservationItem key={r.id} reservation={r} onConfirmReturn={null as any} />
+                            <ReservationItem 
+                                key={r.id} 
+                                reservation={r}
+                            />
                         ))}
-                    </ul>
+                    </div>
                 )}
             </section>
         </div>
+
+
+        // <div className="max-w-4xl mx-auto mt-10 text-white">
+        //     <h1 className="text-3xl font-bold mb-6">Your Account</h1>
+        //     <p className="mb-8 text-lg">Logged in as: <span className="font-semibold">{email}</span></p>
+            
+        //     {/* Message after confirming return */}
+        //     {message && <div className="bg-green-600 text-white p-4 rounded-3xl mb-4">{message}</div>}
+            
+        //     <section className="mb-12">
+        //         <h2 className="text-2xl font-semibold mb-4">Active Reservations</h2>
+        //         {activeReservations.length === 0 ? (
+        //             <p>No active reservations.</p>
+        //         ) : (
+        //             <ul className="space-y-4">
+        //                 {activeReservations.map(r => (
+        //                     <ReservationItem key={r.id} reservation={r} onConfirmReturn={confirmReturn} />
+        //                 ))}
+        //             </ul>
+        //         )}
+        //     </section>
+            
+        //     <section>
+        //         <h2 className="text-2xl font-semibold mb-4">Reservation History</h2>
+        //         {pastReservations.length === 0 ? (
+        //             <p>No past reservations.</p>
+        //         ) : (
+        //             <ul className="space-y-4">
+        //                 {pastReservations.map(r => (
+        //                     <ReservationItem key={r.id} reservation={r} onConfirmReturn={null as any} />
+        //                 ))}
+        //             </ul>
+        //         )}
+        //     </section>
+        // </div>
     );
 };
