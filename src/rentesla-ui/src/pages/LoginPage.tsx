@@ -1,57 +1,59 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router';
-import { FormInput } from '../components/FormInput';
+import { SectionCard } from '../components/SectionCard';
+import { Header } from '../components/Header';
+import { AuthForm } from '../components/AuthForm';
 
 export const LoginPage = () => {
     const { login } = useAuth();
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [message, setMessage] = useState<string>('');
     const navigate = useNavigate();
+    
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
     
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        
         try {
             await login({ email, password });
             navigate('/', { state: { loginSuccess: true } });
         } catch (error: any) {
-            setMessage(error.message || 'Login failed');
-            alert(error.message);
+            const message = error?.message || 'Login failed';
+            setEmailError(message);
+            setPasswordError(message);
         }
     };
     
     return (
-        <div className="dark:text-white max-w-md mx-auto mt-10 p-6 rounded shadow-lg border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900">
-            <h2 className="text-xl font-bold mb-4">Login</h2>
-            <form onSubmit={handleLogin} className="space-y-4">
-                <FormInput
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => {
-                        setEmail(e.target.value);
-                        setMessage('');
-                    }}
-                    required
-                />
-                
-                <FormInput
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => {
-                        setPassword(e.target.value);
-                        setMessage('');
-                    }}
-                    required
-                />
-                
-                <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
-                    Login
-                </button>
-            </form>
-            {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
+        <div className="my-12">
+            <Header
+                title="Login"
+                subtitle="Please enter your credentials to access your account"
+            />
+            
+            <div className="max-w-lg mx-auto px-4 sm:px-6 lg:px-8">
+                <SectionCard>
+                    <AuthForm
+                        mode="login"
+                        email={email}
+                        password={password}
+                        emailError={emailError}
+                        passwordError={passwordError}
+                        onEmailChange={(e) => {
+                            setEmail(e.target.value);
+                            setEmailError('');
+                        }}
+                        onPasswordChange={(e) => {
+                            setPassword(e.target.value);
+                            setPasswordError('');
+                        }}
+                        onSubmit={handleLogin}
+                    />
+                </SectionCard>
+            </div>
         </div>
     );
 };
