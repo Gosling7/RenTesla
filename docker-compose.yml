@@ -24,7 +24,9 @@ services:
       - mssql
     environment:
       - DB_Host=mssql
-    # restart: always
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    restart: always
 
   rentesla.ui:
     container_name: rentesla.ui
@@ -37,8 +39,6 @@ services:
       - mssql
       - rentesla.api
     environment:
-      # - HOST=0.0.0.0
-      # - NODE_ENV=development
       - BACKEND_URL=http://rentesla.api:8080
     stdin_open: true
     tty: true

@@ -14,19 +14,26 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<RenTeslaDbContext>(optionsBuilder =>
 {
-    var dbHost = builder.Configuration["DB_Host"];
-    if (string.IsNullOrWhiteSpace(dbHost))
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrWhiteSpace(connectionString))
     {
-        dbHost = "localhost";
-    }
+        var config = builder.Configuration;
+        var dbHost = config["DB_Host"];
+        var dbPassword = config["DB_PASSWORD"];
+        var dbName = config["DB_NAME"];
 
-    optionsBuilder.UseSqlServer(
-        $"Data Source={dbHost},1433;" +
-        "Initial Catalog=RenTesla;" +
-        "User ID=sa;" +
-        "Password=Password1!;" +
-        "Encrypt=False;" +
-        "Trust Server Certificate=True");
+        optionsBuilder.UseSqlServer(
+            $"Data Source={dbHost},1433;" +
+            $"Initial Catalog={dbName};" +
+            "User ID=sa;" +
+            $"Password={dbPassword};" +
+            "Encrypt=False;" +
+            "Trust Server Certificate=True");
+    }
+    else
+    {
+        optionsBuilder.UseSqlServer(connectionString);
+    }    
 });
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
