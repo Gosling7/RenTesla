@@ -1,4 +1,4 @@
-import { ModelCard } from './ModelCard';
+import { AvailableCarModelCard } from './AvailableCarModelCard';
 import { CarModelDto, LocationDto } from '../types/ApiResults';
 import { useEffect, useState } from 'react';
 
@@ -41,7 +41,7 @@ export const AvailableModelsList = ({ locations, models, pickupId, dropoffId, fr
             }`}
         >
             {models.map(model => (
-                <ModelCard
+                <AvailableCarModelCard
                     key={model.id}
                     locations={locations}
                     model={model}

@@ -4,9 +4,9 @@ public class Error
 {
     public string Message { get; }
     public string PropertyName { get; }
-    public SimpleErrorType Type { get; }
+    public ErrorType Type { get; }
 
-    public Error(string property, string message, SimpleErrorType type)
+    public Error(string property, string message, ErrorType type)
     {
         PropertyName = property;
         Message = message;
@@ -14,7 +14,7 @@ public class Error
     }
 }
 
-public enum SimpleErrorType
+public enum ErrorType
 {
     NotFound,
     Validation,

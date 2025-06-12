@@ -76,7 +76,7 @@ public class ReservationService : IReservationService
             errors.Add(new Error(
                 property: nameof(email),
                 message: $"Must be a valid email address",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
 
             return Result<IEnumerable<ReservationDto>>.Failure(errors);
         }
@@ -135,7 +135,7 @@ public class ReservationService : IReservationService
                 errors.Add(new Error(
                     property: nameof(request.CarModelId),
                     message: $"No car model found with the given id",
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
             }
 
             var availableCar = await _dbContext.Cars
@@ -153,7 +153,7 @@ public class ReservationService : IReservationService
                 errors.Add(new Error(
                     property: nameof(request.CarModelId),
                     message: $"No car found with the given model id",
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
             }
 
             var existingPickUpLocation = await _dbContext.Locations.FindAsync(request.PickUpLocationId);
@@ -162,7 +162,7 @@ public class ReservationService : IReservationService
                 errors.Add(new Error(
                     property: nameof(request.CarModelId),
                     message: $"No pickup location found with the given id",
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
             }
 
             var existingDropOffLocation = await _dbContext.Locations.FindAsync(request.DropOffLocationId);
@@ -171,7 +171,7 @@ public class ReservationService : IReservationService
                 errors.Add(new Error(
                     property: nameof(request.CarModelId),
                     message: $"No drop off location found with the given id",
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
             }
 
             if (errors.Count > 0)
@@ -209,7 +209,7 @@ public class ReservationService : IReservationService
             errors.Add(new Error(
                 property: nameof(request.CreateAccount),
                 message: ex.Message,
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
             return Result<string>.Failure(errors);
         }
     }
@@ -224,7 +224,7 @@ public class ReservationService : IReservationService
             errors.Add(new Error(
                 property: nameof(id),
                 message: "No reservation found with the given ID.",
-                type: SimpleErrorType.NotFound));
+                type: ErrorType.NotFound));
 
             return SimpleResult.Failure(errors);
         }
@@ -237,7 +237,7 @@ public class ReservationService : IReservationService
                 errors.Add(new Error(
                     property: nameof(id),
                     message: "Return already confirmed by staff.",
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
 
                 return SimpleResult.Failure(errors);
             }
@@ -251,7 +251,7 @@ public class ReservationService : IReservationService
                 errors.Add(new Error(
                     property: nameof(id),
                     message: "Return already confirmed by user.",
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
 
                 return SimpleResult.Failure(errors);
             }
@@ -266,7 +266,7 @@ public class ReservationService : IReservationService
                 errors.Add(new Error(
                     property: nameof(id),
                     message: "Car from the reservation not found.",
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
 
                 return SimpleResult.Failure(errors);
             }

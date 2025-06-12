@@ -38,7 +38,7 @@ export const StaffPage = () => {
     
     if (!isAuthenticated || !user?.roles.includes('Staff')) {
         return (
-            <div className="text-white p-6">
+            <div className="dark:text-white p-6">
                 <p>You're not a staff member. Click <a href="/" className="text-blue-400 underline">here</a> to return to homepage.</p>
             </div>
         );
@@ -47,9 +47,12 @@ export const StaffPage = () => {
     if (loading) return <p className="text-white p-6">Loading reservations...</p>;
     
     return (
-        <div className="max-w-5xl mx-auto mt-10 text-white">
-            <h1 className="text-3xl font-bold mb-6">Active Reservations - Staff Panel</h1>
-            <ul className="space-y-4">
+        <div className="max-w-4xl mx-auto mt-10 px-6">
+            <h1 className="text-3xl font-bold mb-6 dark:text-white">
+                Active Reservations - Staff Panel
+            </h1>
+            
+            <ul className="space-y-6">
                 {reservations.map(r => (
                     <StaffReservationItem key={r.id} reservation={r} onConfirmReturn={confirmReturn} />
                 ))}

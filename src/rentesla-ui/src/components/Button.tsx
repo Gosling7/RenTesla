@@ -20,17 +20,3 @@ export const Button = ({ onClick, disabled = false, type, children }: Props) => 
         </button>
     );
 };
-
-// export const Button = ({ onClick, disabled = false, label }: Props) => {
-//     return (
-//         <button
-//             onClick={onClick}
-//             disabled={disabled}
-//             className="py-3 px-4 rounded-2xl font-medium
-//             text-white bg-black hover:bg-neutral-700
-//             dark:text-black dark:bg-white dark:hover:bg-neutral-400"                     
-//         >
-//             {label}
-//         </button>
-//     );
-// };

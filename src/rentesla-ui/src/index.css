@@ -2,7 +2,6 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Define color variables */
 @layer base {
     :root {
         --color-bg-primary: white;
@@ -13,17 +12,9 @@
     }
 }
 
-/* Apply variables */
 @layer base {    
     body {
         background-color: var(--color-bg-primary);
         color: var(--color-text-primary);
     }
 }
-
-/* @layer utilities {
-  * {
-    @apply transition-colors duration-200;
-    transition-property: color, background-color, border-color, fill, stroke, opacity, text;
-  }
-} */

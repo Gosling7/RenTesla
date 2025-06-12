@@ -42,7 +42,7 @@ public class AuthService : IAuthService
                 new Error(
                     property: nameof(request.Password),
                     message: e.Description,
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
 
             errors.AddRange(managerErrors);
 
@@ -73,7 +73,7 @@ public class AuthService : IAuthService
             errors.Add(new Error(
                 property: null!,
                 message: null!,
-                type: SimpleErrorType.Unauthorized));
+                type: ErrorType.Unauthorized));
 
             return Result<UserInfoDto>.Failure(errors);
         }
@@ -101,7 +101,7 @@ public class AuthService : IAuthService
             errors.Add(new Error(
                 property: null!,
                 message: null!,
-                type: SimpleErrorType.Unauthorized));
+                type: ErrorType.Unauthorized));
 
             return Result<UserInfoDto>.Failure(errors);
         }

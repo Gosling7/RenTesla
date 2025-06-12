@@ -18,7 +18,7 @@ public class AuthRequestValidator : IAuthRequestValidator
             errors.Add(new Error(
                 property: nameof(request.Email),
                 message: $"Must be a valid email address",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
 
         var nameOfPassword = nameof(request.Password);
@@ -27,14 +27,14 @@ public class AuthRequestValidator : IAuthRequestValidator
             errors.Add(new Error(
                 property: nameOfPassword,
                 message: $"Must be provided",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
         if (request.Password.Length < 6)
         {
             errors.Add(new Error(
                 property: nameOfPassword,
                 message: $"Must at least 6 characters long",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
 
         return errors;

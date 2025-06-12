@@ -5,8 +5,9 @@ interface Props {
     locations: LocationDto[];
     value: string;
     onChange: (id: string) => void;
+    error: string;
 }
-export const LocationSelector = ({ label, locations, value, onChange }: Props) => (
+export const LocationSelector = ({ label, locations, value, onChange, error }: Props) => (
     <div className="flex flex-col text-black dark:text-white">
         <label className="font-medium mb-1">{label}</label>
         <select
@@ -21,5 +22,8 @@ export const LocationSelector = ({ label, locations, value, onChange }: Props) =
             <option key={loc.id} value={loc.id}>{loc.name}</option>
         ))}
         </select>
+        {error && (
+            <p className="text-red-500">{error}</p>
+        )}
     </div>
 );

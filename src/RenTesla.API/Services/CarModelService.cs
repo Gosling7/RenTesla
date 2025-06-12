@@ -10,6 +10,7 @@ namespace RenTesla.API.Services;
 public class CarModelService : ICarModelService
 {
     private readonly RenTeslaDbContext _dbContext;
+    const string MustBeProvidedMessage = "Must be provided";
 
     public CarModelService(RenTeslaDbContext dbContext)
     {
@@ -39,7 +40,7 @@ public class CarModelService : ICarModelService
                 errors.Add(new Error(
                     property: nameof(request.PickUpLocationId),
                     message: "No pickup location found with the given ID.",
-                    type: SimpleErrorType.Validation));
+                    type: ErrorType.Validation));
 
                 return Result<IEnumerable<CarModelDto>>.Failure(errors);
             }
@@ -82,22 +83,45 @@ public class CarModelService : ICarModelService
         {
             errors.Add(new Error(
                 property: nameof(request.PickUpLocationId),
-                message: "'PickUpLocationId' must be provided when Available=true.",
-                type: SimpleErrorType.Validation));
+                message: MustBeProvidedMessage,
+                type: ErrorType.Validation));
         }
+        if (!request.DropOffLocationId.HasValue)
+        {
+            errors.Add(new Error(
+                property: nameof(request.DropOffLocationId),
+                message: MustBeProvidedMessage,
+                type: ErrorType.Validation));
+        }
+
         if (!request.From.HasValue)
         {
             errors.Add(new Error(
                 property: nameof(request.From),
-                message: "'From' must be provided when Available=true.",
-                type: SimpleErrorType.Validation));
+                message: MustBeProvidedMessage,
+                type: ErrorType.Validation));
         }
         if (!request.To.HasValue)
         {
             errors.Add(new Error(
                 property: nameof(request.To),
-                message: "'To' must be provided when Available=true.",
-                type: SimpleErrorType.Validation));
+                message: MustBeProvidedMessage,
+                type: ErrorType.Validation));
+        }
+
+        if (request.From < DateTime.Now)
+        {
+            errors.Add(new Error(
+                property: nameof(request.From),
+                message: "Must be in the future",
+                type: ErrorType.Validation));
+        }
+        if (request.To < request.From)
+        {
+            errors.Add(new Error(
+                property: nameof(request.To),
+                message: "Cannot be earlier than pick-up date",
+                type: ErrorType.Validation));
         }
     }
 

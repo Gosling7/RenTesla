@@ -4,8 +4,7 @@ interface Props {
 }
 
 export const Header = ({ title, subtitle }: Props) => (
-    <div className="text-center mb-12">
-        {/* <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"> */}
+    <header className="text-center mb-12">
         <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
             {title}
         </h1>
@@ -15,5 +14,5 @@ export const Header = ({ title, subtitle }: Props) => (
                 {subtitle}
             </p>
         )}
-    </div>
+    </header>
 );

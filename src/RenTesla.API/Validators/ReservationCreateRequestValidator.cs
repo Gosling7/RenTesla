@@ -18,7 +18,7 @@ public class ReservationCreateRequestValidator : IReservationCreateRequestValida
             errors.Add(new Error(
                 property: nameof(request.Email),
                 message: $"Must be a valid email address",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
 
         var nameOfTotalCost = nameof(request.TotalCost);
@@ -27,7 +27,7 @@ public class ReservationCreateRequestValidator : IReservationCreateRequestValida
             errors.Add(new Error(
                 property: nameOfTotalCost,
                 message: $"Must be greater than 0",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
 
         var nameOfFrom = nameof(request.From);
@@ -37,21 +37,21 @@ public class ReservationCreateRequestValidator : IReservationCreateRequestValida
             errors.Add(new Error(
                 property: nameOfFrom,
                 message: $"Must be in the future",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
         if (request.To < DateTime.UtcNow)
         {
             errors.Add(new Error(
                 property: nameOfTo,
                 message: $"Must be in the future",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
         if (request.From > request.To)
         {
             errors.Add(new Error(
                 property: nameOfFrom,
                 message: $"Must be greater than '{nameOfTo}'",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
 
         if (request.CarModelId == Guid.Empty)
@@ -59,21 +59,21 @@ public class ReservationCreateRequestValidator : IReservationCreateRequestValida
             errors.Add(new Error(
                 property: nameof(request.CarModelId),
                 message: $"Must be provided",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
         if (request.PickUpLocationId == Guid.Empty)
         {
             errors.Add(new Error(
                 property: nameof(request.PickUpLocationId),
                 message: $"Must be provided",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
         if (request.DropOffLocationId == Guid.Empty)
         {
             errors.Add(new Error(
                 property: nameof(request.DropOffLocationId),
                 message: $"Must be provided",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
 
         return errors;

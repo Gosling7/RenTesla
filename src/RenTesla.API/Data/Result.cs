@@ -17,9 +17,9 @@ public class Result<T>
         Errors = [];
     }
     
-    public bool IsValidationError => Errors.Any(e => e.Type == SimpleErrorType.Validation);
-    public bool IsNotFoundError => Errors.Any(e => e.Type == SimpleErrorType.NotFound);
-    public bool IsUnauthorizedError => Errors.Any(e => e.Type == SimpleErrorType.Unauthorized);
+    public bool IsValidationError => Errors.Any(e => e.Type == ErrorType.Validation);
+    public bool IsNotFoundError => Errors.Any(e => e.Type == ErrorType.NotFound);
+    public bool IsUnauthorizedError => Errors.Any(e => e.Type == ErrorType.Unauthorized);
 
     public static Result<T> Success(T value) => new(value);
     public static Result<T> Failure(IReadOnlyCollection<Error> errors) => new(errors);
@@ -39,8 +39,8 @@ public class SimpleResult
         Errors = [];
     }
 
-    public bool IsValidationError => Errors.Any(e => e.Type == SimpleErrorType.Validation);
-    public bool IsNotFoundError => Errors.Any(e => e.Type == SimpleErrorType.NotFound);
+    public bool IsValidationError => Errors.Any(e => e.Type == ErrorType.Validation);
+    public bool IsNotFoundError => Errors.Any(e => e.Type == ErrorType.NotFound);
 
     public static SimpleResult Success() => new();
     public static SimpleResult Failure(IReadOnlyCollection<Error> errors) => new(errors);

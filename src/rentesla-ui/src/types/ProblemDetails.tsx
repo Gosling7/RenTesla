@@ -5,4 +5,4 @@ export interface ProblemDetails {
     instance: string;
     traceId?: string;
     errors?: Record<string, string[]>;
-}
+};

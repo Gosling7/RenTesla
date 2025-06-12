@@ -13,7 +13,6 @@ export const Footer = () => {
                     <ul className="text-sm space-y-2 dark:text-gray-300">
                         <li><Link to="/about" className="hover:text-gray-400">About Us</Link></li>
                         <li><Link to="/reservations" className="hover:text-gray-400">Make a Reservation</Link></li>
-                        <li><Link to="/#" className="hover:text-gray-400">Our Fleet</Link></li>
                         <li><Link to="/#" className="hover:text-gray-400">Contact Us</Link></li>
                     </ul>
                 </div>
@@ -30,14 +29,19 @@ export const Footer = () => {
                     <h6 className="text-lg font-semibold text-black mb-4 dark:text-white">Newsletter</h6>
                     <p className="text-sm mb-2 dark:text-gray-300">Subscribe to our newsletter for exclusive deals and updates.</p>
                     <div className="flex">
-                        <input type="email" className="bg-gray-100 text-black border border-gray-700 rounded-l-md py-2 px-3 w-full focus:outline-none focus:border-indigo-500" placeholder="Your email"/>
-                        <button className="hover:bg-neutral-800! text-white font-semibold py-2 px-4 rounded-l-none! rounded-r-2xl! focus:outline-none">Subscribe</button>
+                        <input type="email" className="bg-gray-100 text-black border border-gray-700 rounded-l-md py-2 px-3 w-full" placeholder="Your email"/>
+                        <button className="py-3 px-4 rounded-r-2xl font-medium
+                            text-white bg-black enabled:hover:bg-neutral-700
+                            dark:text-black dark:bg-white enabled:dark:hover:bg-neutral-400
+                            disabled:opacity-50, disabled:cursor-not-allowed">
+                            Subscribe
+                        </button>
                     </div>
                 </div>
             </div>
             <div className="mt-8 py-2 text-center text-sm text-gray-400">
                 <p>&copy; {new Date().getFullYear()} RenTesla. All rights reserved.</p>
-                <p className="mt-1">Designed & Developed by Your Team</p>
+                <p className="mt-1">Designed & Developed by Michał Gąska</p>
             </div>
         </footer>
     );

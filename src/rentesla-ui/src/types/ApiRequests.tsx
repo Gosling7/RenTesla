@@ -1,7 +1,7 @@
 export interface AuthRequest {
     email: string;
     password: string;
-}
+};
 
 export interface CreateReservationRequest {
     email: string;
@@ -13,4 +13,12 @@ export interface CreateReservationRequest {
     totalCost: number;
     createAccount?: boolean;
     password?: string;
-}
+};
+
+export interface GetCarModels {
+    available: boolean;
+    pickUpLocationId: string;
+    dropOffLocationId: string;
+    from: string;
+    to: string;
+};

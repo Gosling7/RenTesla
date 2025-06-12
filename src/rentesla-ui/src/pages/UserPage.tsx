@@ -72,7 +72,7 @@ export const UserPage = () => {
     }
     
     return (
-        <main className="max-w-4xl mx-auto p-6">
+        <div className="max-w-5xl mx-auto p-6">
             <header className="mb-8">
                 <h1 className="text-3xl font-bold mb-2 dark:text-white">Your Account</h1>
                 <p className="text-lg text-gray-600 dark:text-gray-300">
@@ -124,7 +124,7 @@ export const UserPage = () => {
                     </ul>
                 )}
             </section>
-        </main>
+        </div>
     );    
 };
 

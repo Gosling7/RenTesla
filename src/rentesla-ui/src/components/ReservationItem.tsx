@@ -11,7 +11,7 @@ export const ReservationItem = ({ reservation, onConfirmReturn }: ReservationIte
         || reservation.status === ReservationStatus.Completed;
 
     return (
-        <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-all duration-300">
+        <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden">
             <div className="p-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                     <div className="flex-1">

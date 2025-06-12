@@ -18,7 +18,7 @@ public class ReservationByCodeQueryRequestValidator : IReservationByCodeQueryReq
             errors.Add(new Error(
                 property: nameof(request.Email),
                 message: $"Must be a valid email address",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
 
         var nameOfReservationCode = nameof(request.ReservationCode);
@@ -27,14 +27,14 @@ public class ReservationByCodeQueryRequestValidator : IReservationByCodeQueryReq
             errors.Add(new Error(
                 property: nameOfReservationCode,
                 message: $"Must be provided",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
         if (request.ReservationCode.Length != 36)
         {
             errors.Add(new Error(
                 property: nameOfReservationCode,
                 message: $"Must be of length 36",
-                type: SimpleErrorType.Validation));
+                type: ErrorType.Validation));
         }
 
         return errors;
