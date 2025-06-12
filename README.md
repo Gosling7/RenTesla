@@ -36,7 +36,7 @@ The application is fully containerized using Docker Compose for easy setup in is
 - **Light and Dark Mode** 
 
 ## How To Run
-Run `docker-compose up` in the repository's root directory.
+Run `docker-compose up` in the repository's root directory and go to `http://localhost:3000/`.
 
 Optionally you can view and modify variables in `.env` file.
 
